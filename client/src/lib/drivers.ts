@@ -11,6 +11,16 @@ export async function fetchDrivers(): Promise<Driver[]> {
   return data;
 }
 
+// Feeds the Trip creation form's driver dropdown — server-side filtered
+// (query-level, not client-side) so a stale cache can't offer an
+// already-busy driver.
+export async function fetchAvailableDrivers(): Promise<Driver[]> {
+  const { data } = await apiClient.get<Driver[]>("/api/drivers", {
+    params: { status: "AVAILABLE" },
+  });
+  return data;
+}
+
 export async function createDriver(input: DriverCreateInput): Promise<Driver> {
   const { data } = await apiClient.post<Driver>("/api/drivers", input);
   return data;

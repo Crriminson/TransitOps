@@ -6,10 +6,11 @@ import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import VehiclesPage from "./pages/VehiclesPage";
 import DriversPage from "./pages/DriversPage";
+import TripsPage from "./pages/TripsPage";
 
 function App() {
   // Initialises the Socket.io connection to /ops namespace once a token is
-  // available. Event listeners are added in Steps 4–6.
+  // available. Event listeners are added in Steps 5–6.
   useSocketSync();
 
   return (
@@ -39,6 +40,14 @@ function App() {
             element={
               <Layout>
                 <DriversPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/trips"
+            element={
+              <Layout>
+                <TripsPage />
               </Layout>
             }
           />

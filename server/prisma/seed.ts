@@ -20,7 +20,7 @@
  * Running this script now executes without error and logs a status message.
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type Vehicle, type Driver } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
@@ -161,8 +161,9 @@ async function main(): Promise<void> {
     },
   ];
 
+  const vehiclesByReg: Record<string, Vehicle> = {};
   for (const vehicle of demoVehicles) {
-    await prisma.vehicle.upsert({
+    vehiclesByReg[vehicle.registrationNumber] = await prisma.vehicle.upsert({
       where: { registrationNumber: vehicle.registrationNumber },
       update: {},
       create: vehicle,
@@ -245,8 +246,9 @@ async function main(): Promise<void> {
     },
   ];
 
+  const driversByLicense: Record<string, Driver> = {};
   for (const driver of demoDrivers) {
-    await prisma.driver.upsert({
+    driversByLicense[driver.licenseNumber] = await prisma.driver.upsert({
       where: { licenseNumber: driver.licenseNumber },
       update: {},
       create: driver,
@@ -267,11 +269,153 @@ async function main(): Promise<void> {
 
   // -------------------------------------------------------------------------
   // Trip  (Step 4 — Trip Management)
-  // Seed trips across statuses (COMPLETED, DISPATCHED, HALTED, DRAFT) so
-  // every dashboard KPI card and the map have data to display.
-  // At least one COMPLETED trip per vehicle for fuel-efficiency / ROI.
+  // One trip per status (DRAFT, DISPATCHED, HALTED, COMPLETED, CANCELLED)
+  // so every lifecycle action has something to demo. Tracking numbers are
+  // fixed (not the random TO-<id> the API generates) so this stays
+  // idempotent across re-runs. Vehicle/driver side effects are applied
+  // manually here to mirror what the real dispatch/complete transactions
+  // would do — this bypasses the API, so nothing enforces that for us.
   // -------------------------------------------------------------------------
-  // TODO (Step 4): seed demo trips
+  const now = new Date();
+  const twoDaysAgo = new Date(now.getTime() - 2 * DAY_MS);
+
+  const draftVehicle = vehiclesByReg["GJ01PQ7890"]!;
+  const draftDriver = driversByLicense["MH-1420190098765"]!; // Fatima Sheikh
+
+  const dispatchedVehicle = vehiclesByReg["MH12AB1234"]!;
+  const dispatchedDriver = driversByLicense["DL-0420110012345"]!; // Vikram Singh
+
+  const haltedVehicle = vehiclesByReg["TN09XY3456"]!;
+  const haltedDriver = driversByLicense["RJ-1420160056789"]!; // Deepak Joshi
+
+  const completedVehicle = vehiclesByReg["DL8CAF5678"]!;
+  const completedDriver = driversByLicense["KA-0320150067890"]!; // Anjali Nair
+  const completedFinalOdometer = Number(completedVehicle.odometer) + 140;
+
+  const cancelledVehicle = vehiclesByReg["KA05MN9012"]!;
+  const cancelledDriver = driversByLicense["MH-1420190098765"]!; // Fatima Sheikh (reused — never dispatched, so no conflict)
+
+  const demoTrips = [
+    {
+      trackingNumber: "TO-SEED0001",
+      source: "Ahmedabad Depot",
+      destination: "Gandhinagar Hub",
+      vehicleId: draftVehicle.id,
+      driverId: draftDriver.id,
+      cargoWeight: 30,
+      plannedDistance: 25,
+      revenue: 1200,
+      status: "DRAFT" as const,
+    },
+    {
+      trackingNumber: "TO-SEED0002",
+      source: "Delhi Warehouse",
+      destination: "Chandigarh Hub",
+      vehicleId: dispatchedVehicle.id,
+      driverId: dispatchedDriver.id,
+      cargoWeight: 12000,
+      plannedDistance: 250,
+      revenue: 45000,
+      status: "DISPATCHED" as const,
+      dispatchedAt: twoDaysAgo,
+    },
+    {
+      trackingNumber: "TO-SEED0003",
+      source: "Chennai Port",
+      destination: "Bangalore Depot",
+      vehicleId: haltedVehicle.id,
+      driverId: haltedDriver.id,
+      cargoWeight: 20000,
+      plannedDistance: 350,
+      revenue: 78000,
+      status: "HALTED" as const,
+      dispatchedAt: twoDaysAgo,
+      haltReason: "Vehicle breakdown — awaiting roadside assistance",
+    },
+    {
+      trackingNumber: "TO-SEED0004",
+      source: "Bangalore Hub",
+      destination: "Mysore Depot",
+      vehicleId: completedVehicle.id,
+      driverId: completedDriver.id,
+      cargoWeight: 1200,
+      plannedDistance: 145,
+      revenue: 8500,
+      status: "COMPLETED" as const,
+      dispatchedAt: twoDaysAgo,
+      completedAt: now,
+      actualDistance: 140,
+      finalOdometer: completedFinalOdometer,
+      fuelConsumed: 18,
+    },
+    {
+      trackingNumber: "TO-SEED0005",
+      source: "Kolkata Depot",
+      destination: "Howrah Hub",
+      vehicleId: cancelledVehicle.id,
+      driverId: cancelledDriver.id,
+      cargoWeight: 500,
+      plannedDistance: 15,
+      revenue: 900,
+      status: "CANCELLED" as const,
+    },
+  ];
+
+  for (const trip of demoTrips) {
+    await prisma.trip.upsert({
+      where: { trackingNumber: trip.trackingNumber },
+      update: {},
+      create: trip,
+    });
+  }
+
+  // Vehicle/driver side effects that the real dispatch/complete/halt
+  // transactions would have produced — applied directly since this seed
+  // bypasses those endpoints.
+  await prisma.vehicle.update({
+    where: { id: dispatchedVehicle.id },
+    data: { status: "ON_TRIP" },
+  });
+  await prisma.driver.update({
+    where: { id: dispatchedDriver.id },
+    data: { status: "ON_TRIP" },
+  });
+
+  await prisma.vehicle.update({ where: { id: haltedVehicle.id }, data: { status: "ON_TRIP" } });
+  await prisma.driver.update({ where: { id: haltedDriver.id }, data: { status: "ON_TRIP" } });
+
+  await prisma.vehicle.update({
+    where: { id: completedVehicle.id },
+    data: { odometer: completedFinalOdometer, status: "AVAILABLE" },
+  });
+  await prisma.driver.update({
+    where: { id: completedDriver.id },
+    data: { status: "AVAILABLE" },
+  });
+
+  // FuelLog has no natural unique key to upsert on — check for an existing
+  // row against this trip before creating, so re-running seed doesn't pile
+  // up duplicates (this mirrors what the real /complete transaction does,
+  // just done by hand since we're bypassing the API here).
+  const completedTrip = await prisma.trip.findUniqueOrThrow({
+    where: { trackingNumber: "TO-SEED0004" },
+  });
+  const existingFuelLog = await prisma.fuelLog.findFirst({
+    where: { tripId: completedTrip.id },
+  });
+  if (!existingFuelLog) {
+    await prisma.fuelLog.create({
+      data: {
+        vehicleId: completedVehicle.id,
+        tripId: completedTrip.id,
+        liters: 18,
+        cost: 0,
+        date: now,
+      },
+    });
+  }
+
+  console.log(`   Seeded ${demoTrips.length} demo trips (one per status)`);
 
   // -------------------------------------------------------------------------
   // MaintenanceLog  (Step 5 — Maintenance Workflow)
@@ -296,7 +440,7 @@ async function main(): Promise<void> {
   // TODO (Step 6): seed expenses
 
   console.log(
-    "✅ TransitOps seed — demo users, vehicles, drivers seeded (Steps 1-3).\n" +
+    "✅ TransitOps seed — demo users, vehicles, drivers, trips seeded (Steps 1-4).\n" +
       "   Remaining sections above will be filled in as their feature branch lands."
   );
 }

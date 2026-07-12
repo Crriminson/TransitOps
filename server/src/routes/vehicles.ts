@@ -1,6 +1,6 @@
 import { Router, type Request } from "express";
 import { Prisma, type Vehicle } from "@prisma/client";
-import { vehicleCreateSchema, vehicleUpdateSchema } from "@transitops/shared";
+import { vehicleCreateSchema, vehicleUpdateSchema, VehicleStatusEnum } from "@transitops/shared";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../lib/errors";
 import { requireAuth, requireRole } from "../middleware/auth";
@@ -9,7 +9,9 @@ const router = Router();
 
 // Prisma's Decimal fields serialize via JSON.stringify as strings, not
 // numbers — convert them here so the client always receives real numbers.
-function serializeVehicle(vehicle: Vehicle) {
+// Exported for reuse by routes/trips.ts, which nests a serialized vehicle
+// on each trip.
+export function serializeVehicle(vehicle: Vehicle) {
   return {
     ...vehicle,
     maxLoadCapacity: Number(vehicle.maxLoadCapacity),
@@ -38,9 +40,22 @@ async function findVehicleOr404(id: string): Promise<Vehicle> {
   return vehicle;
 }
 
-// GET /api/vehicles — any authenticated role
-router.get("/", requireAuth, async (_req, res) => {
-  const vehicles = await prisma.vehicle.findMany({ orderBy: { createdAt: "asc" } });
+// GET /api/vehicles — any authenticated role. Optional ?status= filter
+// feeds the Trip creation form's "available vehicle pool" dropdown
+// (Process Flow: dispatch-eligible queries filter at the query level, not
+// client-side, so a stale cache can't offer an unavailable vehicle).
+router.get("/", requireAuth, async (req, res) => {
+  const { status } = req.query;
+  let where: Prisma.VehicleWhereInput | undefined;
+  if (status !== undefined) {
+    const parsed = VehicleStatusEnum.safeParse(status);
+    if (!parsed.success) {
+      throw new AppError(400, "Invalid status filter");
+    }
+    where = { status: parsed.data };
+  }
+
+  const vehicles = await prisma.vehicle.findMany({ where, orderBy: { createdAt: "asc" } });
   res.json(vehicles.map(serializeVehicle));
 });
 

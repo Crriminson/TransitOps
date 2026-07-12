@@ -1,4 +1,4 @@
-import type { VehicleStatus, DriverStatus } from "@transitops/shared";
+import type { VehicleStatus, DriverStatus, TripStatus } from "@transitops/shared";
 
 // Vehicle status → badge color scheme (Technical Requirements §3.9).
 // Reused as-is by the Map view (Step 9) for marker colors, so keep this the
@@ -19,4 +19,13 @@ export const DRIVER_STATUS_STYLES: Record<DriverStatus, string> = {
   ON_TRIP: "bg-blue-500/10 text-blue-400 border-blue-500/20",
   OFF_DUTY: "bg-slate-500/10 text-slate-400 border-slate-500/20",
   SUSPENDED: "bg-red-500/10 text-red-400 border-red-500/20",
+};
+
+// Trip status → badge color scheme (Process Flow §3 Trip state machine).
+export const TRIP_STATUS_STYLES: Record<TripStatus, string> = {
+  DRAFT: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+  DISPATCHED: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  HALTED: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  COMPLETED: "bg-green-500/10 text-green-400 border-green-500/20",
+  CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
 };

@@ -1,6 +1,9 @@
 import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuthStore } from "../store/authStore";
+import { queryClient } from "../lib/queryClient";
+import type { Vehicle } from "../types/vehicle";
+import type { Driver } from "../types/driver";
 
 /**
  * useSocketSync — connects to the /ops namespace using the JWT held in the
@@ -8,11 +11,14 @@ import { useAuthStore } from "../store/authStore";
  * and skips connecting entirely while logged out, since the server now
  * verifies the handshake token (Step 1).
  *
- * Event listeners are added here in subsequent steps (all in this one
- * file per Process Flow §5 — keeps socket wiring in one place):
+ * Event listeners are added here (all in this one file per Process Flow
+ * §5 — keeps socket wiring in one place). Where the event payload carries
+ * the affected vehicleId/driverId (trip:dispatched), the cache is patched
+ * directly via setQueryData. Where it doesn't (trip:completed changes the
+ * vehicle's odometer too; trip:cancelled/halted/resumed payloads only
+ * carry the tripId), a targeted invalidateQueries is used instead — patching
+ * fields we don't have would mean guessing at derived data.
  *
- *   Step 4: trip:dispatched, trip:completed, trip:cancelled,
- *           trip:halted, trip:resumed  → setQueryData / invalidateQueries
  *   Step 5: maintenance:opened, maintenance:closed
  *   Step 6: cost:logged
  */
@@ -47,11 +53,43 @@ export function useSocketSync(): void {
       console.warn("[useSocketSync] /ops connection error:", err.message);
     });
 
-    // TODO (Step 4): socket.on("trip:dispatched", (payload) => { ... })
-    // TODO (Step 4): socket.on("trip:completed",  (payload) => { ... })
-    // TODO (Step 4): socket.on("trip:cancelled",  (payload) => { ... })
-    // TODO (Step 4): socket.on("trip:halted",     (payload) => { ... })
-    // TODO (Step 4): socket.on("trip:resumed",    (payload) => { ... })
+    socket.on(
+      "trip:dispatched",
+      (payload: { tripId: string; vehicleId: string; driverId: string }) => {
+        queryClient.setQueryData<Vehicle[]>(["vehicles"], (old) =>
+          old?.map((v) => (v.id === payload.vehicleId ? { ...v, status: "ON_TRIP" } : v))
+        );
+        queryClient.setQueryData<Driver[]>(["drivers"], (old) =>
+          old?.map((d) => (d.id === payload.driverId ? { ...d, status: "ON_TRIP" } : d))
+        );
+        queryClient.invalidateQueries({ queryKey: ["trips"] });
+      }
+    );
+
+    socket.on("trip:completed", () => {
+      // Vehicle odometer + both statuses changed; payload doesn't carry
+      // the new odometer, so refetch rather than guess.
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+      queryClient.invalidateQueries({ queryKey: ["drivers"] });
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
+    });
+
+    socket.on("trip:cancelled", (payload: { tripId: string; wasDispatched: boolean }) => {
+      if (payload.wasDispatched) {
+        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+        queryClient.invalidateQueries({ queryKey: ["drivers"] });
+      }
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
+    });
+
+    socket.on("trip:halted", () => {
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
+    });
+
+    socket.on("trip:resumed", () => {
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
+    });
+
     // TODO (Step 5): socket.on("maintenance:opened", (payload) => { ... })
     // TODO (Step 5): socket.on("maintenance:closed", (payload) => { ... })
     // TODO (Step 6): socket.on("cost:logged",        (payload) => { ... })

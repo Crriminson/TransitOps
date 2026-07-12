@@ -23,13 +23,12 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import { createServer } from "http";
-import { Server as SocketIOServer } from "socket.io";
-import type { UserRole } from "@transitops/shared";
 import authRouter from "./routes/auth";
 import vehiclesRouter from "./routes/vehicles";
 import driversRouter from "./routes/drivers";
+import tripsRouter from "./routes/trips";
 import { errorHandler } from "./middleware/errorHandler";
-import { verifyAuthToken } from "./lib/jwt";
+import { createSocketServer } from "./lib/socket";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -79,6 +78,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/vehicles", vehiclesRouter);
 app.use("/api/drivers", driversRouter);
+app.use("/api/trips", tripsRouter);
 
 // Centralized error middleware — must be registered last, after every route.
 app.use(errorHandler);
@@ -90,62 +90,11 @@ const httpServer = createServer(app);
 
 // ---------------------------------------------------------------------------
 // Socket.io — namespace /ops
-// Per Technical Requirements §3.10 and Process Flow §5.
-//
-// Handshake middleware verifies the JWT passed in the connection's auth
-// payload (same access token as REST calls) and attaches the decoded user
-// to the socket. Missing/invalid tokens reject the connection.
+// Per Technical Requirements §3.10 and Process Flow §5. Setup lives in
+// lib/socket.ts so route handlers can import emitOpsEvent without a
+// circular dependency on this entry point.
 // ---------------------------------------------------------------------------
-interface OpsSocketData {
-  user: { id: string; role: UserRole };
-}
-
-const io = new SocketIOServer<
-  Record<string, never>,
-  Record<string, never>,
-  Record<string, never>,
-  OpsSocketData
->(httpServer, {
-  cors: {
-    origin: ALLOWED_ORIGINS,
-    credentials: true,
-  },
-});
-
-const opsNs = io.of("/ops");
-
-opsNs.use((socket, next) => {
-  const token: unknown = socket.handshake.auth?.token;
-
-  if (!token || typeof token !== "string" || token.trim() === "") {
-    return next(new Error("Authentication error: token missing"));
-  }
-
-  try {
-    const payload = verifyAuthToken(token);
-    socket.data.user = { id: payload.userId, role: payload.role };
-    next();
-  } catch {
-    next(new Error("Authentication error: invalid or expired token"));
-  }
-});
-
-opsNs.on("connection", (socket) => {
-  console.log(
-    `[Socket.io /ops] client connected  : ${socket.id} (user ${socket.data.user.id}, role ${socket.data.user.role})`
-  );
-
-  socket.on("disconnect", (reason) => {
-    console.log(`[Socket.io /ops] client disconnected: ${socket.id} — ${reason}`);
-  });
-
-  // Business events are added here in subsequent steps:
-  //   Step 4: emit trip:dispatched, trip:completed, trip:cancelled, trip:halted, trip:resumed
-  //   Step 5: emit maintenance:opened, maintenance:closed
-  //   Step 6: emit cost:logged
-  // All from the same namespace so useSocketSync() on the client wires them
-  // in one place (Process Flow §5).
-});
+const io = createSocketServer(httpServer, ALLOWED_ORIGINS);
 
 // ---------------------------------------------------------------------------
 // Start

@@ -4,6 +4,7 @@ import {
   driverCreateSchema,
   driverUpdateSchema,
   driverStatusSchema,
+  DriverStatusEnum,
 } from "@transitops/shared";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../lib/errors";
@@ -13,8 +14,8 @@ const router = Router();
 
 // licenseExpired is never stored — computed at query time from
 // licenseExpiryDate (Technical Requirements §3.4), so it's always accurate
-// without a background job.
-function serializeDriver(driver: Driver) {
+// without a background job. Exported for reuse by routes/trips.ts.
+export function serializeDriver(driver: Driver) {
   return {
     ...driver,
     licenseExpired: driver.licenseExpiryDate.getTime() < Date.now(),
@@ -39,9 +40,20 @@ async function findDriverOr404(id: string): Promise<Driver> {
   return driver;
 }
 
-// GET /api/drivers — any authenticated role
-router.get("/", requireAuth, async (_req, res) => {
-  const drivers = await prisma.driver.findMany({ orderBy: { createdAt: "asc" } });
+// GET /api/drivers — any authenticated role. Optional ?status= filter
+// feeds the Trip creation form's "available driver pool" dropdown.
+router.get("/", requireAuth, async (req, res) => {
+  const { status } = req.query;
+  let where: Prisma.DriverWhereInput | undefined;
+  if (status !== undefined) {
+    const parsed = DriverStatusEnum.safeParse(status);
+    if (!parsed.success) {
+      throw new AppError(400, "Invalid status filter");
+    }
+    where = { status: parsed.data };
+  }
+
+  const drivers = await prisma.driver.findMany({ where, orderBy: { createdAt: "asc" } });
   res.json(drivers.map(serializeDriver));
 });
 

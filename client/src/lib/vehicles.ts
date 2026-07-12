@@ -7,6 +7,16 @@ export async function fetchVehicles(): Promise<Vehicle[]> {
   return data;
 }
 
+// Feeds the Trip creation form's vehicle dropdown — server-side filtered
+// (query-level, not client-side) so a stale cache can't offer an
+// already-busy vehicle.
+export async function fetchAvailableVehicles(): Promise<Vehicle[]> {
+  const { data } = await apiClient.get<Vehicle[]>("/api/vehicles", {
+    params: { status: "AVAILABLE" },
+  });
+  return data;
+}
+
 export async function createVehicle(input: VehicleCreateInput): Promise<Vehicle> {
   const { data } = await apiClient.post<Vehicle>("/api/vehicles", input);
   return data;
