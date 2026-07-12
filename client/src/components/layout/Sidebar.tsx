@@ -32,7 +32,7 @@ const NAV_SECTIONS = [
   {
     label: "Analytics",
     items: [
-      { icon: "📈", label: "Reports", href: "/reports", step: 8, implemented: false },
+      { icon: "📈", label: "Reports", href: "/reports", step: 8, implemented: true },
     ],
   },
 ] as const;

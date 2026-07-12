@@ -76,11 +76,13 @@ export function useSocketSync(): void {
 
     socket.on("trip:completed", () => {
       // Vehicle odometer + both statuses changed; payload doesn't carry
-      // the new odometer, so refetch rather than guess.
+      // the new odometer, so refetch rather than guess. Completion also
+      // adds distance/revenue/fuel, so the reports re-derive too.
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
       queryClient.invalidateQueries({ queryKey: ["trips"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["reports"] });
     });
 
     socket.on("trip:cancelled", (payload: { tripId: string; wasDispatched: boolean }) => {
@@ -103,18 +105,20 @@ export function useSocketSync(): void {
     });
 
     // Opening/closing a record flips the vehicle's status (AVAILABLE ⇄
-    // IN_SHOP), so the maintenance list, any vehicle query, and the KPI
-    // counts all re-derive.
+    // IN_SHOP), so the maintenance list, any vehicle query, the KPI counts,
+    // and the reports' operational-cost/ROI columns all re-derive.
     socket.on("maintenance:opened", () => {
       queryClient.invalidateQueries({ queryKey: ["maintenance"] });
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["reports"] });
     });
 
     socket.on("maintenance:closed", () => {
       queryClient.invalidateQueries({ queryKey: ["maintenance"] });
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["reports"] });
     });
 
     // Fuel/expense creation doesn't change any cached status — it changes
