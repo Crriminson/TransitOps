@@ -1,37 +1,38 @@
-/**
- * Sidebar — Phase 0 shell.
- * Navigation items will be added as feature branches land.
- * Each item maps to its Step in the Implementation Plan.
- */
+import { Link } from "react-router-dom";
 
+/**
+ * Sidebar — nav items are added as feature branches land.
+ * Each item maps to its Step in the Implementation Plan; `implemented`
+ * flips to true once that step's route actually exists.
+ */
 const NAV_SECTIONS = [
   {
     label: "Operations",
     items: [
-      { icon: "📊", label: "Dashboard", href: "/dashboard", step: 7 },
-      { icon: "🚛", label: "Trips", href: "/trips", step: 4 },
-      { icon: "🗺️", label: "Map", href: "/map", step: 9 },
+      { icon: "📊", label: "Dashboard", href: "/dashboard", step: 7, implemented: false },
+      { icon: "🚛", label: "Trips", href: "/trips", step: 4, implemented: false },
+      { icon: "🗺️", label: "Map", href: "/map", step: 9, implemented: false },
     ],
   },
   {
     label: "Fleet",
     items: [
-      { icon: "🚌", label: "Vehicles", href: "/vehicles", step: 2 },
-      { icon: "👤", label: "Drivers", href: "/drivers", step: 3 },
-      { icon: "📍", label: "Routes", href: "/routes", step: 15 },
+      { icon: "🚌", label: "Vehicles", href: "/vehicles", step: 2, implemented: true },
+      { icon: "👤", label: "Drivers", href: "/drivers", step: 3, implemented: false },
+      { icon: "📍", label: "Routes", href: "/routes", step: 15, implemented: false },
     ],
   },
   {
     label: "Maintenance & Costs",
     items: [
-      { icon: "🔧", label: "Maintenance", href: "/maintenance", step: 5 },
-      { icon: "⛽", label: "Fuel & Expenses", href: "/fuel-expenses", step: 6 },
+      { icon: "🔧", label: "Maintenance", href: "/maintenance", step: 5, implemented: false },
+      { icon: "⛽", label: "Fuel & Expenses", href: "/fuel-expenses", step: 6, implemented: false },
     ],
   },
   {
     label: "Analytics",
     items: [
-      { icon: "📈", label: "Reports", href: "/reports", step: 8 },
+      { icon: "📈", label: "Reports", href: "/reports", step: 8, implemented: false },
     ],
   },
 ] as const;
@@ -75,18 +76,26 @@ export default function Sidebar() {
             <ul className="space-y-0.5">
               {section.items.map((item) => (
                 <li key={item.href}>
-                  <a
-                    href={item.href}
+                  <Link
+                    to={item.implemented ? item.href : "#"}
                     id={`nav-${item.href.replace("/", "").replace("-", "_")}`}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 transition-all duration-150 group"
-                    title={`Step ${item.step} — coming soon`}
+                    onClick={(e) => {
+                      if (!item.implemented) e.preventDefault();
+                    }}
+                    aria-disabled={!item.implemented}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 group ${
+                      item.implemented
+                        ? "text-slate-400 hover:text-slate-100 hover:bg-slate-800/70"
+                        : "text-slate-600 cursor-default"
+                    }`}
+                    title={item.implemented ? item.label : `Step ${item.step} — coming soon`}
                   >
                     <span className="text-base leading-none">{item.icon}</span>
                     <span className="flex-1">{item.label}</span>
                     <span className="text-[10px] text-slate-600 group-hover:text-slate-500 font-mono">
                       §{item.step}
                     </span>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

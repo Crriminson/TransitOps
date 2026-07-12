@@ -77,10 +77,99 @@ async function main(): Promise<void> {
 
   // -------------------------------------------------------------------------
   // Vehicle  (Step 2 — Vehicle Registry)
-  // Seed a realistic mix of vehicles across types, statuses, and regions so
-  // all dashboard KPI cards are non-zero and map markers have variety.
+  // Every VehicleType and every Region represented at least once. Only
+  // AVAILABLE/RETIRED seeded here — ON_TRIP/IN_SHOP only make sense once
+  // Trip (Step 4) and Maintenance (Step 5) exist to put a vehicle in them.
   // -------------------------------------------------------------------------
-  // TODO (Step 2): seed demo vehicles
+  const demoVehicles = [
+    {
+      registrationNumber: "MH12AB1234",
+      name: "Tata Prima 2830.K",
+      type: "TRUCK" as const,
+      maxLoadCapacity: 16000,
+      odometer: 45230,
+      acquisitionCost: 3200000,
+      status: "AVAILABLE" as const,
+      region: "NORTH" as const,
+      lastServiceOdometer: 42000,
+    },
+    {
+      registrationNumber: "DL8CAF5678",
+      name: "Mahindra Bolero Pik-Up",
+      type: "VAN" as const,
+      maxLoadCapacity: 1500,
+      odometer: 21000,
+      acquisitionCost: 950000,
+      status: "AVAILABLE" as const,
+      region: "SOUTH" as const,
+      lastServiceOdometer: 18500,
+    },
+    {
+      registrationNumber: "KA05MN9012",
+      name: "Tata Ace Gold",
+      type: "MINI_TRUCK" as const,
+      maxLoadCapacity: 750,
+      odometer: 15400,
+      acquisitionCost: 620000,
+      status: "AVAILABLE" as const,
+      region: "EAST" as const,
+      lastServiceOdometer: 12000,
+    },
+    {
+      registrationNumber: "TN09XY3456",
+      name: "Ashok Leyland 3718",
+      type: "TRAILER" as const,
+      maxLoadCapacity: 25000,
+      odometer: 68900,
+      acquisitionCost: 4500000,
+      status: "AVAILABLE" as const,
+      region: "WEST" as const,
+      lastServiceOdometer: 65000,
+    },
+    {
+      registrationNumber: "GJ01PQ7890",
+      name: "Bajaj CT100 Courier",
+      type: "BIKE" as const,
+      maxLoadCapacity: 50,
+      odometer: 8200,
+      acquisitionCost: 65000,
+      status: "AVAILABLE" as const,
+      region: "CENTRAL" as const,
+      lastServiceOdometer: 5000,
+    },
+    {
+      registrationNumber: "RJ14ST2345",
+      name: "Eicher Pro 3015",
+      type: "TRUCK" as const,
+      maxLoadCapacity: 9000,
+      odometer: 152000,
+      acquisitionCost: 2100000,
+      status: "RETIRED" as const,
+      region: "SOUTH" as const,
+      lastServiceOdometer: 150000,
+    },
+    {
+      registrationNumber: "MH20UV6789",
+      name: "Mahindra Supro",
+      type: "VAN" as const,
+      maxLoadCapacity: 1200,
+      odometer: 98000,
+      acquisitionCost: 780000,
+      status: "RETIRED" as const,
+      region: "NORTH" as const,
+      lastServiceOdometer: 95000,
+    },
+  ];
+
+  for (const vehicle of demoVehicles) {
+    await prisma.vehicle.upsert({
+      where: { registrationNumber: vehicle.registrationNumber },
+      update: {},
+      create: vehicle,
+    });
+  }
+
+  console.log(`   Seeded ${demoVehicles.length} demo vehicles (all types, all regions)`);
 
   // -------------------------------------------------------------------------
   // Driver  (Step 3 — Driver Management)
@@ -128,7 +217,7 @@ async function main(): Promise<void> {
   // TODO (Step 6): seed expenses
 
   console.log(
-    "✅ TransitOps seed — demo users seeded (Step 1).\n" +
+    "✅ TransitOps seed — demo users + vehicles seeded (Steps 1-2).\n" +
       "   Remaining sections above will be filled in as their feature branch lands."
   );
 }

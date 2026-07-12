@@ -4,7 +4,9 @@ import { AppError } from "../lib/errors";
 
 // Centralized error middleware — must be registered last, after all routes.
 // Shapes: 400 (Zod validation) -> { errors: { field, message }[] } per §6;
-// 401/403/404/409 (AppError) -> { message }; anything else -> 500.
+// 401/403/404/409 (AppError) -> { message }, or { field, message } when the
+// error is a field-level conflict (e.g. a unique-constraint 409); anything
+// else -> 500.
 export function errorHandler(
   err: unknown,
   _req: Request,
@@ -22,7 +24,11 @@ export function errorHandler(
   }
 
   if (err instanceof AppError) {
-    res.status(err.status).json({ message: err.message });
+    if (err.field) {
+      res.status(err.status).json({ field: err.field, message: err.message });
+    } else {
+      res.status(err.status).json({ message: err.message });
+    }
     return;
   }
 
