@@ -14,6 +14,7 @@ import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { AlertCircle } from "lucide-react";
 
 export default function MaintenancePage() {
   const role = useAuthStore((state) => state.user?.role);
@@ -153,27 +154,31 @@ export default function MaintenancePage() {
               </div>
             </form>
 
-            <div className="pt-6 space-y-4 text-xs font-medium border-t border-[var(--border-color)]">
-              <div className="flex items-center gap-2">
-                <span className="text-green-500 w-16">Available</span>
-                <div className="flex-1 relative h-4 flex items-center">
-                  <div className="absolute left-0 right-0 h-[1px] bg-[var(--text-secondary)]"></div>
-                  <div className="absolute right-0 -mt-[4px] border-solid border-l-[8px] border-y-[4px] border-l-[var(--text-secondary)] border-y-transparent"></div>
-                  <span className="absolute left-1/2 -translate-x-1/2 text-[10px] text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-2">creating active record</span>
+            {/* Visual Workflow Hint */}
+            <div className="bg-[var(--bg-secondary)]/40 rounded-2xl p-5 border border-[var(--border-color)]">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-5">Maintenance Workflow</h4>
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-3">
+                  <StatusBadge status="AVAILABLE" className="bg-green-500/10 text-green-500 w-24 justify-center border-green-500/20 font-bold shadow-sm" />
+                  <div className="flex-1 border-t-2 border-dashed border-[var(--border-color)] relative">
+                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--bg-primary)] px-3 py-0.5 rounded-full text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest whitespace-nowrap border border-[var(--border-color)] shadow-sm">Create Record</span>
+                  </div>
+                  <StatusBadge status="IN_SHOP" className="bg-orange-500/10 text-[#cc6600] w-24 justify-center border-orange-500/20 font-bold shadow-sm" />
                 </div>
-                <span className="text-[#cc6600] w-12 text-right">In Shop</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[#cc6600] w-16">In Shop</span>
-                <div className="flex-1 relative h-4 flex items-center">
-                  <div className="absolute left-0 right-0 h-[1px] bg-[var(--text-secondary)]"></div>
-                  <div className="absolute right-0 -mt-[4px] border-solid border-l-[8px] border-y-[4px] border-l-[var(--text-secondary)] border-y-transparent"></div>
-                  <span className="absolute left-1/2 -translate-x-1/2 text-[10px] text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-2">closing record</span>
+                
+                <div className="flex items-center gap-3">
+                  <StatusBadge status="IN_SHOP" className="bg-orange-500/10 text-[#cc6600] w-24 justify-center border-orange-500/20 font-bold shadow-sm" />
+                  <div className="flex-1 border-t-2 border-dashed border-[var(--border-color)] relative">
+                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--bg-primary)] px-3 py-0.5 rounded-full text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest whitespace-nowrap border border-[var(--border-color)] shadow-sm">Close Record</span>
+                  </div>
+                  <StatusBadge status="AVAILABLE" className="bg-green-500/10 text-green-500 w-24 justify-center border-green-500/20 font-bold shadow-sm" />
                 </div>
-                <span className="text-green-500 w-12 text-right">Available</span>
               </div>
               
-              <p className="text-[#cc6600] opacity-80 pt-2">Note: In Shop vehicles are removed from the dispatch pool.</p>
+              <div className="mt-6 bg-orange-500/10 border border-orange-500/20 text-[#cc6600] rounded-xl p-3 flex items-start gap-2.5 shadow-sm">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span className="text-xs font-bold leading-tight">Note: In Shop vehicles are removed from the dispatch pool.</span>
+              </div>
             </div>
           </div>
         )}
@@ -189,23 +194,23 @@ export default function MaintenancePage() {
             <Card className="bg-[var(--bg-primary)] border-[var(--border-color)] overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                  <thead className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-[10px] uppercase tracking-widest border-b border-[var(--border-color)]">
+                  <thead className="bg-[var(--bg-secondary)]/60 text-[var(--text-secondary)] text-[10px] uppercase tracking-widest border-b border-[var(--border-color)]">
                     <tr>
-                      <th className="px-5 py-4 font-semibold">Vehicle</th>
-                      <th className="px-5 py-4 font-semibold">Service</th>
-                      <th className="px-5 py-4 font-semibold">Cost</th>
-                      <th className="px-5 py-4 font-semibold text-right">Status</th>
+                      <th className="px-6 py-5 font-bold">Vehicle</th>
+                      <th className="px-6 py-5 font-bold">Service</th>
+                      <th className="px-6 py-5 font-bold">Cost</th>
+                      <th className="px-6 py-5 font-bold text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[var(--border-color)]">
+                  <tbody className="divide-y divide-[var(--border-color)]/60">
                     {filteredLogs.map((log) => (
-                      <tr key={log.id} className="text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/50 transition-colors">
-                        <td className="px-5 py-4">
-                          <div className="font-mono font-medium">{log.vehicle.registrationNumber}</div>
+                      <tr key={log.id} className="text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/40 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-mono font-bold text-[var(--brand-color)]">{log.vehicle.registrationNumber}</div>
                         </td>
-                        <td className="px-5 py-4 max-w-[200px] truncate">{log.description}</td>
-                        <td className="px-5 py-4">${log.cost.toLocaleString()}</td>
-                        <td className="px-5 py-4 text-right">
+                        <td className="px-6 py-4 max-w-[200px] truncate font-medium">{log.description}</td>
+                        <td className="px-6 py-4 font-bold text-[var(--text-primary)]">${log.cost.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-3">
                             <StatusBadge
                               status={log.status === "OPEN" ? "In Shop" : "Completed"}

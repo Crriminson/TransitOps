@@ -12,6 +12,7 @@ import type { Driver } from "../types/driver";
 
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
+import { AlertCircle } from "lucide-react";
 
 type FormState = { mode: "create" } | { mode: "edit"; driver: Driver } | null;
 const PAGE_SIZE = 10;
@@ -104,22 +105,22 @@ export default function DriversPage() {
           <Card className="bg-[var(--bg-primary)] border-[var(--border-color)] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-[10px] uppercase tracking-widest border-b border-[var(--border-color)]">
+                <thead className="bg-[var(--bg-secondary)]/60 text-[var(--text-secondary)] text-[10px] uppercase tracking-widest border-b border-[var(--border-color)]">
                   <tr>
-                    <th className="px-5 py-4 font-semibold">Driver</th>
-                    <th className="px-5 py-4 font-semibold">License No</th>
-                    <th className="px-5 py-4 font-semibold">Category</th>
-                    <th className="px-5 py-4 font-semibold">Expiry</th>
-                    <th className="px-5 py-4 font-semibold">Contact</th>
-                    <th className="px-5 py-4 font-semibold">Trip Compl.</th>
-                    <th className="px-5 py-4 font-semibold">Safety Score</th>
-                    <th className="px-5 py-4 font-semibold text-right">Status</th>
+                    <th className="px-6 py-5 font-bold">Driver</th>
+                    <th className="px-6 py-5 font-bold">License No</th>
+                    <th className="px-6 py-5 font-bold">Category</th>
+                    <th className="px-6 py-5 font-bold">Expiry</th>
+                    <th className="px-6 py-5 font-bold">Contact</th>
+                    <th className="px-6 py-5 font-bold">Trip Compl.</th>
+                    <th className="px-6 py-5 font-bold">Safety Score</th>
+                    <th className="px-6 py-5 font-bold text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border-color)]">
+                <tbody className="divide-y divide-[var(--border-color)]/60">
                   {paginatedDrivers.map((driver) => (
-                    <tr key={driver.id} className="text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/50 transition-colors group">
-                      <td className="px-5 py-4">
+                    <tr key={driver.id} className="text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/40 transition-colors group">
+                      <td className="px-6 py-4">
                         <div className="font-bold flex items-center gap-2">
                           {driver.name}
                           {canWrite && (
@@ -132,24 +133,24 @@ export default function DriversPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-5 py-4 font-mono text-sm">{driver.licenseNumber}</td>
-                      <td className="px-5 py-4">{driver.licenseCategory}</td>
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-4 font-mono font-bold text-[var(--brand-color)] text-sm">{driver.licenseNumber}</td>
+                      <td className="px-6 py-4 font-bold">{driver.licenseCategory}</td>
+                      <td className="px-6 py-4 font-medium">
                         <div className="flex items-center gap-2">
                           <span>{new Date(driver.licenseExpiryDate).toLocaleDateString()}</span>
                           {driver.licenseExpired && (
-                            <StatusBadge status="EXPIRED" className="bg-[#cc6600]/10 text-[#cc6600] border-[#cc6600]/30 px-1.5 py-0.5 text-[10px]" />
+                            <StatusBadge status="EXPIRED" className="bg-[#cc6600]/10 text-[#cc6600] border-[#cc6600]/30 px-1.5 py-0.5 text-[10px] font-bold shadow-sm" />
                           )}
                         </div>
                       </td>
-                      <td className="px-5 py-4 font-mono">{driver.contactNumber}</td>
-                      <td className="px-5 py-4">{Math.round(Math.random() * 20 + 80)}%</td> {/* Mocked trip completion rate as it's not in schema */}
-                      <td className="px-5 py-4">
-                        <StatusBadge status={`${driver.safetyScore}/100`} className={getSafetyColor(driver.safetyScore)} />
+                      <td className="px-6 py-4 font-mono font-medium">{driver.contactNumber}</td>
+                      <td className="px-6 py-4 font-bold">{Math.round(Math.random() * 20 + 80)}%</td> {/* Mocked trip completion rate */}
+                      <td className="px-6 py-4">
+                        <StatusBadge status={`${driver.safetyScore}/100`} className={`${getSafetyColor(driver.safetyScore)} font-bold shadow-sm`} />
                       </td>
-                      <td className="px-5 py-4 text-right">
-                        <div className="flex flex-col items-end gap-1">
-                          <StatusBadge status={driver.status} className={getStatusColor(driver.status)} />
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex flex-col items-end gap-1.5">
+                          <StatusBadge status={driver.status} className={`${getStatusColor(driver.status)} font-bold shadow-sm`} />
                           {canWrite && driver.status === "AVAILABLE" && (
                             <button
                               onClick={() => setSuspendTarget(driver)}
@@ -207,9 +208,15 @@ export default function DriversPage() {
             )}
           </div>
 
-          <p className="text-[#cc6600] text-sm font-medium">
-            Rule: Expired license or Suspended status → blocked from trip assignment
-          </p>
+          <div className="bg-orange-500/10 border border-orange-500/20 text-[#cc6600] rounded-2xl p-4 flex items-start gap-3 shadow-sm max-w-max">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-bold uppercase tracking-wider mb-0.5">Assignment Rule</h4>
+              <p className="text-sm font-medium opacity-90">
+                Drivers with an expired license or a Suspended status are automatically blocked from trip assignment.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

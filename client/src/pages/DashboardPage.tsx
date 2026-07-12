@@ -127,35 +127,35 @@ export default function DashboardPage() {
         {/* Recent Trips */}
         <div className="lg:col-span-2 space-y-4">
           <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)]">Recent Trips</h2>
-          <Card className="bg-[var(--bg-primary)] border-[var(--border-color)]">
+          <Card className="bg-[var(--bg-primary)] border-[var(--border-color)] overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-xs uppercase tracking-wider border-b border-[var(--border-color)]">
+                <thead className="bg-[var(--bg-secondary)]/60 text-[var(--text-secondary)] text-[10px] uppercase tracking-widest border-b border-[var(--border-color)]">
                   <tr>
-                    <th className="px-4 py-3">Trip ID</th>
-                    <th className="px-4 py-3">Date</th>
-                    <th className="px-4 py-3">Vehicle</th>
-                    <th className="px-4 py-3">Driver</th>
-                    <th className="px-4 py-3">Status</th>
+                    <th className="px-6 py-5 font-bold">Trip ID</th>
+                    <th className="px-6 py-5 font-bold">Date</th>
+                    <th className="px-6 py-5 font-bold">Vehicle</th>
+                    <th className="px-6 py-5 font-bold">Driver</th>
+                    <th className="px-6 py-5 font-bold">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border-color)]">
+                <tbody className="divide-y divide-[var(--border-color)]/60">
                   {recentTrips.map((trip) => (
-                    <tr key={trip.id} className="text-[var(--text-primary)]">
-                      <td className="px-4 py-4 font-mono font-medium">{trip.trackingNumber}</td>
-                      <td className="px-4 py-4 whitespace-nowrap text-[var(--text-secondary)]">
+                    <tr key={trip.id} className="text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/40 transition-colors">
+                      <td className="px-6 py-4 font-mono font-bold text-[var(--brand-color)]">{trip.trackingNumber}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-[var(--text-secondary)] font-bold">
                         {new Date(trip.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                       </td>
-                      <td className="px-4 py-4">{trip.vehicle?.name || "—"}</td>
-                      <td className="px-4 py-4">{trip.driver?.name || "—"}</td>
-                      <td className="px-4 py-4">
-                        <StatusBadge status={trip.status} className={TRIP_STATUS_STYLES[trip.status]} />
+                      <td className="px-6 py-4 font-bold">{trip.vehicle?.name || "—"}</td>
+                      <td className="px-6 py-4 font-medium">{trip.driver?.name || "—"}</td>
+                      <td className="px-6 py-4">
+                        <StatusBadge status={trip.status} className={`${TRIP_STATUS_STYLES[trip.status]} font-bold shadow-sm`} />
                       </td>
                     </tr>
                   ))}
                   {recentTrips.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-[var(--text-secondary)]">
+                      <td colSpan={5} className="px-6 py-10 text-center text-[var(--text-secondary)] font-medium border-dashed border-[var(--border-color)]">
                         No recent trips.
                       </td>
                     </tr>

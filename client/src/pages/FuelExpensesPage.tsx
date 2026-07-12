@@ -76,23 +76,23 @@ export default function FuelExpensesPage() {
         {fuelQuery.isError && <p className="text-red-400 text-sm">Failed to load fuel logs.</p>}
         
         {fuelQuery.data && (
-          <div className="w-full">
+          <div className="rounded-2xl border border-[var(--border-color)] overflow-hidden shadow-sm bg-[var(--bg-primary)]">
             <table className="w-full text-sm text-left">
-              <thead className="border-b border-black/10 dark:border-white/10 text-[var(--text-secondary)] text-xs uppercase tracking-wider font-semibold">
+              <thead className="bg-[var(--bg-secondary)]/60 text-[var(--text-secondary)] text-[10px] uppercase tracking-widest border-b border-[var(--border-color)]">
                 <tr>
-                  <th className="px-4 py-3 pb-4">Vehicle</th>
-                  <th className="px-4 py-3 pb-4">Date</th>
-                  <th className="px-4 py-3 pb-4">Liters</th>
-                  <th className="px-4 py-3 pb-4 text-right">Fuel Cost</th>
+                  <th className="px-6 py-5 font-bold">Vehicle</th>
+                  <th className="px-6 py-5 font-bold">Date</th>
+                  <th className="px-6 py-5 font-bold">Liters</th>
+                  <th className="px-6 py-5 font-bold text-right">Fuel Cost</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-black/5 dark:divide-white/5">
+              <tbody className="divide-y divide-[var(--border-color)]/60">
                 {fuelQuery.data.map((log) => (
-                  <tr key={log.id} className="text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-4 font-mono font-bold text-xs">{log.vehicle.registrationNumber}</td>
-                    <td className="px-4 py-4 font-medium">{new Date(log.date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                    <td className="px-4 py-4 font-medium">{log.liters.toLocaleString()} L</td>
-                    <td className="px-4 py-4 text-right font-medium">{log.cost.toLocaleString()}</td>
+                  <tr key={log.id} className="text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/40 transition-colors">
+                    <td className="px-6 py-4 font-mono font-bold text-[var(--brand-color)]">{log.vehicle.registrationNumber}</td>
+                    <td className="px-6 py-4 font-bold">{new Date(log.date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                    <td className="px-6 py-4 font-medium">{log.liters.toLocaleString()} L</td>
+                    <td className="px-6 py-4 text-right font-bold">${log.cost.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -109,28 +109,27 @@ export default function FuelExpensesPage() {
         {expenseQuery.isError && <p className="text-red-400 text-sm">Failed to load expenses.</p>}
         
         {expenseQuery.data && (
-          <div className="w-full">
+          <div className="rounded-2xl border border-[var(--border-color)] overflow-hidden shadow-sm bg-[var(--bg-primary)]">
             <table className="w-full text-sm text-left">
-              <thead className="border-b border-black/10 dark:border-white/10 text-[var(--text-secondary)] text-xs uppercase tracking-wider font-semibold">
+              <thead className="bg-[var(--bg-secondary)]/60 text-[var(--text-secondary)] text-[10px] uppercase tracking-widest border-b border-[var(--border-color)]">
                 <tr>
-                  <th className="px-4 py-3 pb-4">Vehicle</th>
-                  <th className="px-4 py-3 pb-4">Date</th>
-                  <th className="px-4 py-3 pb-4">Type</th>
-                  <th className="px-4 py-3 pb-4">Description</th>
-                  <th className="px-4 py-3 pb-4 text-right">Amount</th>
+                  <th className="px-6 py-5 font-bold">Vehicle</th>
+                  <th className="px-6 py-5 font-bold">Date</th>
+                  <th className="px-6 py-5 font-bold">Type</th>
+                  <th className="px-6 py-5 font-bold">Description</th>
+                  <th className="px-6 py-5 font-bold text-right">Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-black/5 dark:divide-white/5">
+              <tbody className="divide-y divide-[var(--border-color)]/60">
                 {expenseQuery.data.map((expense) => (
-                  <tr key={expense.id} className="text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-4 font-mono font-bold text-xs">{expense.vehicle.registrationNumber}</td>
-                    <td className="px-4 py-4 font-medium">{new Date(expense.date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                    <td className="px-4 py-4 font-medium">{expense.type}</td>
-                    <td className="px-4 py-4 text-[var(--text-secondary)] font-medium max-w-[200px] truncate">{expense.description || "—"}</td>
-                    <td className="px-4 py-4 text-right">
-                      {/* Using the styled pill format for amount similar to mockup */}
-                      <span className="inline-block px-3 py-1 bg-green-500/20 text-green-600 dark:text-green-400 font-bold rounded border border-green-500/30">
-                        {expense.amount.toLocaleString()}
+                  <tr key={expense.id} className="text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/40 transition-colors">
+                    <td className="px-6 py-4 font-mono font-bold text-[var(--brand-color)]">{expense.vehicle.registrationNumber}</td>
+                    <td className="px-6 py-4 font-bold">{new Date(expense.date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                    <td className="px-6 py-4 font-bold">{expense.type}</td>
+                    <td className="px-6 py-4 text-[var(--text-secondary)] font-medium max-w-[200px] truncate">{expense.description || "—"}</td>
+                    <td className="px-6 py-4 text-right">
+                      <span className="inline-block px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 font-bold rounded-lg border border-green-500/20 shadow-sm">
+                        ${expense.amount.toLocaleString()}
                       </span>
                     </td>
                   </tr>
