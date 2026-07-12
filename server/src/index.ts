@@ -30,6 +30,7 @@ import tripsRouter from "./routes/trips";
 import maintenanceRouter from "./routes/maintenance";
 import fuelLogsRouter from "./routes/fuelLogs";
 import expensesRouter from "./routes/expenses";
+import dashboardRouter from "./routes/dashboard";
 import { errorHandler } from "./middleware/errorHandler";
 import { createSocketServer } from "./lib/socket";
 
@@ -85,6 +86,7 @@ app.use("/api/trips", tripsRouter);
 app.use("/api/maintenance", maintenanceRouter);
 app.use("/api/fuel-logs", fuelLogsRouter);
 app.use("/api/expenses", expensesRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 // Centralized error middleware — must be registered last, after every route.
 app.use(errorHandler);

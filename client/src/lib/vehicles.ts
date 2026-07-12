@@ -1,9 +1,24 @@
-import type { VehicleCreateInput, VehicleUpdateInput } from "@transitops/shared";
+import type {
+  VehicleCreateInput,
+  VehicleUpdateInput,
+  VehicleType,
+  VehicleStatus,
+  Region,
+} from "@transitops/shared";
 import { apiClient } from "./apiClient";
 import type { Vehicle } from "../types/vehicle";
 
-export async function fetchVehicles(): Promise<Vehicle[]> {
-  const { data } = await apiClient.get<Vehicle[]>("/api/vehicles");
+export interface VehicleFilters {
+  type?: VehicleType;
+  status?: VehicleStatus;
+  region?: Region;
+}
+
+// Optional filters (type/status/region) power the Dashboard's filtered
+// vehicle table (§3.2); all combine server-side (AND). Passing no filters
+// returns the full fleet.
+export async function fetchVehicles(filters: VehicleFilters = {}): Promise<Vehicle[]> {
+  const { data } = await apiClient.get<Vehicle[]>("/api/vehicles", { params: filters });
   return data;
 }
 

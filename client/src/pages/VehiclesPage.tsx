@@ -19,7 +19,7 @@ export default function VehiclesPage() {
     data: vehicles,
     isLoading,
     isError,
-  } = useQuery({ queryKey: ["vehicles"], queryFn: fetchVehicles });
+  } = useQuery({ queryKey: ["vehicles"], queryFn: () => fetchVehicles() });
 
   const [formState, setFormState] = useState<FormState>(null);
   const [retireTarget, setRetireTarget] = useState<Vehicle | null>(null);

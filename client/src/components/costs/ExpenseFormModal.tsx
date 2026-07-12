@@ -27,7 +27,7 @@ const today = new Date().toISOString().slice(0, 10);
 
 export default function ExpenseFormModal({ onClose }: ExpenseFormModalProps) {
   const queryClient = useQueryClient();
-  const { data: vehicles } = useQuery({ queryKey: ["vehicles"], queryFn: fetchVehicles });
+  const { data: vehicles } = useQuery({ queryKey: ["vehicles"], queryFn: () => fetchVehicles() });
 
   const {
     register,

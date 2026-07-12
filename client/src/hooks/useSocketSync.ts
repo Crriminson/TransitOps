@@ -53,6 +53,11 @@ export function useSocketSync(): void {
       console.warn("[useSocketSync] /ops connection error:", err.message);
     });
 
+    // ["vehicles"]/["drivers"]/["dashboard"] are prefix keys — invalidating
+    // them refreshes every filtered variant too (the Dashboard queries
+    // ["vehicles", filters] and ["dashboard", filters]). The optimistic
+    // setQueryData patch on trip:dispatched gives the plain vehicle/driver
+    // lists an instant update; the invalidate then reconciles everything.
     socket.on(
       "trip:dispatched",
       (payload: { tripId: string; vehicleId: string; driverId: string }) => {
@@ -62,7 +67,10 @@ export function useSocketSync(): void {
         queryClient.setQueryData<Driver[]>(["drivers"], (old) =>
           old?.map((d) => (d.id === payload.driverId ? { ...d, status: "ON_TRIP" } : d))
         );
+        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+        queryClient.invalidateQueries({ queryKey: ["drivers"] });
         queryClient.invalidateQueries({ queryKey: ["trips"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       }
     );
 
@@ -72,6 +80,7 @@ export function useSocketSync(): void {
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
       queryClient.invalidateQueries({ queryKey: ["trips"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     });
 
     socket.on("trip:cancelled", (payload: { tripId: string; wasDispatched: boolean }) => {
@@ -80,28 +89,32 @@ export function useSocketSync(): void {
         queryClient.invalidateQueries({ queryKey: ["drivers"] });
       }
       queryClient.invalidateQueries({ queryKey: ["trips"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     });
 
     socket.on("trip:halted", () => {
       queryClient.invalidateQueries({ queryKey: ["trips"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     });
 
     socket.on("trip:resumed", () => {
       queryClient.invalidateQueries({ queryKey: ["trips"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     });
 
     // Opening/closing a record flips the vehicle's status (AVAILABLE ⇄
-    // IN_SHOP), so both the maintenance list and any vehicle query need to
-    // re-derive. Payload carries only ids, not the new odometer/status, so
-    // invalidate rather than patch.
+    // IN_SHOP), so the maintenance list, any vehicle query, and the KPI
+    // counts all re-derive.
     socket.on("maintenance:opened", () => {
       queryClient.invalidateQueries({ queryKey: ["maintenance"] });
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     });
 
     socket.on("maintenance:closed", () => {
       queryClient.invalidateQueries({ queryKey: ["maintenance"] });
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     });
 
     // Fuel/expense creation doesn't change any cached status — it changes

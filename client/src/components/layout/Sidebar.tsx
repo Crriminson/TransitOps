@@ -9,7 +9,7 @@ const NAV_SECTIONS = [
   {
     label: "Operations",
     items: [
-      { icon: "📊", label: "Dashboard", href: "/dashboard", step: 7, implemented: false },
+      { icon: "📊", label: "Dashboard", href: "/dashboard", step: 7, implemented: true },
       { icon: "🚛", label: "Trips", href: "/trips", step: 4, implemented: true },
       { icon: "🗺️", label: "Map", href: "/map", step: 9, implemented: false },
     ],

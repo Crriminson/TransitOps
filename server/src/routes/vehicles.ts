@@ -1,6 +1,12 @@
 import { Router, type Request } from "express";
 import { Prisma, type Vehicle } from "@prisma/client";
-import { vehicleCreateSchema, vehicleUpdateSchema, VehicleStatusEnum } from "@transitops/shared";
+import {
+  vehicleCreateSchema,
+  vehicleUpdateSchema,
+  VehicleStatusEnum,
+  VehicleTypeEnum,
+  RegionEnum,
+} from "@transitops/shared";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../lib/errors";
 import { requireAuth, requireRole } from "../middleware/auth";
@@ -44,15 +50,25 @@ async function findVehicleOr404(id: string): Promise<Vehicle> {
 // feeds the Trip creation form's "available vehicle pool" dropdown
 // (Process Flow: dispatch-eligible queries filter at the query level, not
 // client-side, so a stale cache can't offer an unavailable vehicle).
+// ?type= and ?region= additionally power the Dashboard's filtered vehicle
+// table (§3.2). All three combine (AND).
 router.get("/", requireAuth, async (req, res) => {
-  const { status } = req.query;
-  let where: Prisma.VehicleWhereInput | undefined;
-  if (status !== undefined) {
-    const parsed = VehicleStatusEnum.safeParse(status);
-    if (!parsed.success) {
-      throw new AppError(400, "Invalid status filter");
-    }
-    where = { status: parsed.data };
+  const where: Prisma.VehicleWhereInput = {};
+
+  if (req.query.status !== undefined) {
+    const parsed = VehicleStatusEnum.safeParse(req.query.status);
+    if (!parsed.success) throw new AppError(400, "Invalid status filter");
+    where.status = parsed.data;
+  }
+  if (req.query.type !== undefined) {
+    const parsed = VehicleTypeEnum.safeParse(req.query.type);
+    if (!parsed.success) throw new AppError(400, "Invalid type filter");
+    where.type = parsed.data;
+  }
+  if (req.query.region !== undefined) {
+    const parsed = RegionEnum.safeParse(req.query.region);
+    if (!parsed.success) throw new AppError(400, "Invalid region filter");
+    where.region = parsed.data;
   }
 
   const vehicles = await prisma.vehicle.findMany({ where, orderBy: { createdAt: "asc" } });

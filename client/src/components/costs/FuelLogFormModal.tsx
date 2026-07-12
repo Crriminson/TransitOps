@@ -29,7 +29,7 @@ const today = new Date().toISOString().slice(0, 10);
 // cost), so this lists the full fleet, not just the available pool.
 export default function FuelLogFormModal({ onClose }: FuelLogFormModalProps) {
   const queryClient = useQueryClient();
-  const { data: vehicles } = useQuery({ queryKey: ["vehicles"], queryFn: fetchVehicles });
+  const { data: vehicles } = useQuery({ queryKey: ["vehicles"], queryFn: () => fetchVehicles() });
 
   const {
     register,
