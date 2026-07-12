@@ -80,8 +80,8 @@ See `docs/` for:
 - [x] Step 4 — Trip Management + lifecycle
 - [x] Step 5 — Maintenance workflow
 - [x] Step 6 — Fuel & Expense logging
-- [ ] Step 7 — Dashboard
-- [ ] Step 8 — Reports & Analytics
+- [x] Step 7 — Dashboard
+- [x] Step 8 — Reports & Analytics
 - [ ] Step 9 — Maps (Leaflet)
 - [ ] Step 10 — Anomaly flags
 - [ ] Step 11 — Predictive maintenance nudge
