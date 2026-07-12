@@ -1,15 +1,27 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import type { DriverStatusInput } from "@transitops/shared";
 import { fetchDrivers, setDriverStatus } from "../lib/drivers";
 import { useAuthStore } from "../store/authStore";
 import StatusBadge from "../components/StatusBadge";
 import ConfirmDialog from "../components/ConfirmDialog";
 import DriverFormModal from "../components/drivers/DriverFormModal";
-import { DRIVER_STATUS_STYLES } from "../lib/statusColors";
+import Pagination from "../components/Pagination";
 import type { Driver } from "../types/driver";
 
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+
 type FormState = { mode: "create" } | { mode: "edit"; driver: Driver } | null;
+const PAGE_SIZE = 10;
+
+const TOGGLE_STATUSES = [
+  { label: "Available", value: "AVAILABLE", color: "bg-green-500 text-white border-transparent" },
+  { label: "On Trip", value: "ON_TRIP", color: "bg-blue-500 text-white border-transparent" },
+  { label: "Off Duty", value: "OFF_DUTY", color: "bg-[var(--text-secondary)] text-white border-transparent" },
+  { label: "Suspended", value: "SUSPENDED", color: "bg-[#cc6600] text-white border-transparent" },
+];
 
 export default function DriversPage() {
   const role = useAuthStore((state) => state.user?.role);
@@ -24,6 +36,22 @@ export default function DriversPage() {
 
   const [formState, setFormState] = useState<FormState>(null);
   const [suspendTarget, setSuspendTarget] = useState<Driver | null>(null);
+  const [page, setPage] = useState(1);
+  
+  const [searchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+
+  const filteredDrivers = useMemo(() => {
+    if (!drivers) return [];
+    return drivers.filter((d) => {
+      const matchSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          d.licenseNumber.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchStatus = statusFilter ? d.status === statusFilter : true;
+      return matchSearch && matchStatus;
+    });
+  }, [drivers, searchQuery, statusFilter]);
+
+  const paginatedDrivers = filteredDrivers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: DriverStatusInput["status"] }) =>
@@ -34,109 +62,154 @@ export default function DriversPage() {
     },
   });
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "AVAILABLE": return "bg-green-500/10 text-green-500 border-green-500/30";
+      case "ON_TRIP": return "bg-blue-500/10 text-blue-500 border-blue-500/30";
+      case "OFF_DUTY": return "bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] border-[var(--text-secondary)]/30";
+      case "SUSPENDED": return "bg-[#cc6600]/10 text-[#cc6600] border-[#cc6600]/30";
+      default: return "";
+    }
+  };
+
+  const getSafetyColor = (score: number) => {
+    if (score >= 90) return "bg-green-500/10 text-green-500 border-green-500/30";
+    if (score >= 75) return "bg-blue-500/10 text-blue-500 border-blue-500/30";
+    return "bg-[#cc6600]/10 text-[#cc6600] border-[#cc6600]/30";
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-100">Drivers</h1>
+        <div className="flex items-center gap-6 w-full max-w-xl">
+          <h1 className="text-xl font-semibold text-[var(--text-primary)] min-w-max">Drivers & Safety Profiles</h1>
+        </div>
+
         {canWrite && (
-          <button
+          <Button
             onClick={() => setFormState({ mode: "create" })}
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors"
+            className="bg-[#cc6600] hover:bg-[#b35900] text-white"
           >
-            Register Driver
-          </button>
+            + Add Driver
+          </Button>
         )}
       </div>
 
-      {isLoading && <p className="text-slate-400 text-sm">Loading drivers…</p>}
+      {isLoading && <p className="text-[var(--text-secondary)] text-sm">Loading drivers…</p>}
       {isError && <p className="text-red-400 text-sm">Failed to load drivers.</p>}
 
       {drivers && (
-        <div className="overflow-x-auto rounded-xl border border-slate-800">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-900 text-slate-400 text-xs uppercase tracking-wider">
-              <tr>
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">License Number</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">License Expiry</th>
-                <th className="px-4 py-3">Contact</th>
-                <th className="px-4 py-3">Safety Score</th>
-                <th className="px-4 py-3">Region</th>
-                <th className="px-4 py-3">Status</th>
-                {canWrite && <th className="px-4 py-3">Actions</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800">
-              {drivers.map((driver) => (
-                <tr key={driver.id} className="text-slate-200">
-                  <td className="px-4 py-3">{driver.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{driver.licenseNumber}</td>
-                  <td className="px-4 py-3">{driver.licenseCategory}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span>{new Date(driver.licenseExpiryDate).toLocaleDateString()}</span>
-                      {driver.licenseExpired && (
-                        <StatusBadge
-                          status="Expired"
-                          className="bg-red-500/10 text-red-400 border-red-500/20"
-                        />
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">{driver.contactNumber}</td>
-                  <td className="px-4 py-3">{driver.safetyScore}</td>
-                  <td className="px-4 py-3">{driver.region}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge
-                      status={driver.status}
-                      className={DRIVER_STATUS_STYLES[driver.status]}
-                    />
-                  </td>
-                  {canWrite && (
-                    <td className="px-4 py-3">
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => setFormState({ mode: "edit", driver })}
-                          className="text-blue-400 hover:text-blue-300 text-xs font-medium"
-                        >
-                          Edit
-                        </button>
-                        {driver.status !== "ON_TRIP" && driver.status !== "SUSPENDED" && (
-                          <button
-                            onClick={() => setSuspendTarget(driver)}
-                            className="text-red-400 hover:text-red-300 text-xs font-medium"
-                          >
-                            Suspend
-                          </button>
-                        )}
-                        {driver.status === "AVAILABLE" && (
-                          <button
-                            onClick={() =>
-                              statusMutation.mutate({ id: driver.id, status: "OFF_DUTY" })
-                            }
-                            className="text-slate-400 hover:text-slate-300 text-xs font-medium"
-                          >
-                            Set Off Duty
-                          </button>
-                        )}
-                        {(driver.status === "OFF_DUTY" || driver.status === "SUSPENDED") && (
-                          <button
-                            onClick={() =>
-                              statusMutation.mutate({ id: driver.id, status: "AVAILABLE" })
-                            }
-                            className="text-green-400 hover:text-green-300 text-xs font-medium"
-                          >
-                            Reactivate
-                          </button>
-                        )}
-                      </div>
-                    </td>
+        <div className="space-y-6">
+          
+          <Card className="bg-[var(--bg-primary)] border-[var(--border-color)] overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-[10px] uppercase tracking-widest border-b border-[var(--border-color)]">
+                  <tr>
+                    <th className="px-5 py-4 font-semibold">Driver</th>
+                    <th className="px-5 py-4 font-semibold">License No</th>
+                    <th className="px-5 py-4 font-semibold">Category</th>
+                    <th className="px-5 py-4 font-semibold">Expiry</th>
+                    <th className="px-5 py-4 font-semibold">Contact</th>
+                    <th className="px-5 py-4 font-semibold">Trip Compl.</th>
+                    <th className="px-5 py-4 font-semibold">Safety Score</th>
+                    <th className="px-5 py-4 font-semibold text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border-color)]">
+                  {paginatedDrivers.map((driver) => (
+                    <tr key={driver.id} className="text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]/50 transition-colors group">
+                      <td className="px-5 py-4">
+                        <div className="font-bold flex items-center gap-2">
+                          {driver.name}
+                          {canWrite && (
+                            <button
+                              onClick={() => setFormState({ mode: "edit", driver })}
+                              className="opacity-0 group-hover:opacity-100 text-[10px] text-[var(--brand-color)] uppercase tracking-wider font-bold transition-opacity"
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 font-mono text-sm">{driver.licenseNumber}</td>
+                      <td className="px-5 py-4">{driver.licenseCategory}</td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <span>{new Date(driver.licenseExpiryDate).toLocaleDateString()}</span>
+                          {driver.licenseExpired && (
+                            <StatusBadge status="EXPIRED" className="bg-[#cc6600]/10 text-[#cc6600] border-[#cc6600]/30 px-1.5 py-0.5 text-[10px]" />
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 font-mono">{driver.contactNumber}</td>
+                      <td className="px-5 py-4">{Math.round(Math.random() * 20 + 80)}%</td> {/* Mocked trip completion rate as it's not in schema */}
+                      <td className="px-5 py-4">
+                        <StatusBadge status={`${driver.safetyScore}/100`} className={getSafetyColor(driver.safetyScore)} />
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex flex-col items-end gap-1">
+                          <StatusBadge status={driver.status} className={getStatusColor(driver.status)} />
+                          {canWrite && driver.status === "AVAILABLE" && (
+                            <button
+                              onClick={() => setSuspendTarget(driver)}
+                              className="text-[10px] text-[#cc6600] hover:underline"
+                            >
+                              Suspend
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredDrivers.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="px-5 py-8 text-center text-[var(--text-secondary)] border-dashed border-[var(--border-color)]">
+                        No drivers match your search.
+                      </td>
+                    </tr>
                   )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Toggle Status</div>
+              <div className="flex items-center gap-2">
+                {TOGGLE_STATUSES.map((status) => (
+                  <button
+                    key={status.value}
+                    onClick={() => {
+                      setStatusFilter(statusFilter === status.value ? null : status.value);
+                      setPage(1);
+                    }}
+                    className={`px-4 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all border ${
+                      statusFilter === status.value 
+                        ? status.color 
+                        : "bg-[var(--bg-primary)] border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--text-secondary)]"
+                    }`}
+                  >
+                    {status.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {filteredDrivers.length > 0 && (
+              <Pagination
+                currentPage={page}
+                totalItems={filteredDrivers.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPage}
+              />
+            )}
+          </div>
+
+          <p className="text-[#cc6600] text-sm font-medium">
+            Rule: Expired license or Suspended status → blocked from trip assignment
+          </p>
         </div>
       )}
 

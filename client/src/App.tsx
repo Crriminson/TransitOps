@@ -11,6 +11,7 @@ import TripsPage from "./pages/TripsPage";
 import MaintenancePage from "./pages/MaintenancePage";
 import FuelExpensesPage from "./pages/FuelExpensesPage";
 import ReportsPage from "./pages/ReportsPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const withLayout = (node: ReactNode) => <Layout>{node}</Layout>;
 
@@ -34,6 +35,7 @@ function App() {
           <Route path="/maintenance" element={withLayout(<MaintenancePage />)} />
           <Route path="/fuel-expenses" element={withLayout(<FuelExpensesPage />)} />
           <Route path="/reports" element={withLayout(<ReportsPage />)} />
+          <Route path="/settings" element={withLayout(<SettingsPage />)} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

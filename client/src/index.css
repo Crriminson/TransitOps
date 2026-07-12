@@ -1,46 +1,63 @@
 @import "tailwindcss";
 
-/* =========================================================================
-   TransitOps Global Styles
-   Tailwind v4 — all customization via CSS variables and @layer
-   ========================================================================= */
-
-/* ---------------------------------------------------------------------------
-   Design tokens — CSS custom properties
-   --------------------------------------------------------------------------- */
-:root {
-  /* Brand palette */
-  --color-brand-50:  #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-200: #bfdbfe;
-  --color-brand-300: #93c5fd;
-  --color-brand-400: #60a5fa;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
-  --color-brand-800: #1e40af;
-  --color-brand-900: #1e3a8a;
-  --color-brand-950: #172554;
-
-  /* Status colors */
-  --color-available: #22c55e;
-  --color-on-trip:   #3b82f6;
-  --color-in-shop:   #f59e0b;
-  --color-retired:   #6b7280;
-
-  /* Semantic */
-  --color-success:   #22c55e;
-  --color-warning:   #f59e0b;
-  --color-danger:    #ef4444;
-  --color-info:      #3b82f6;
-
-  /* Radius */
-  --radius: 0.5rem;
+@theme {
+  --color-brand-50: #fff1f2;
+  --color-brand-100: #ffe4e6;
+  --color-brand-200: #fecdd3;
+  --color-brand-300: #fda4af;
+  --color-brand-400: #fb7185;
+  --color-brand-500: #f43f5e;
+  --color-brand-600: #e11d48;
+  --color-brand-700: #be123c;
+  --color-brand-800: #9f1239;
+  --color-brand-900: #881337;
+  --color-brand-950: #4c0519;
+  --color-brand-DEFAULT: #ff385c;
+  --radius: 0.75rem;
 }
 
-/* ---------------------------------------------------------------------------
-   Base styles
-   --------------------------------------------------------------------------- */
+/* =========================================================================
+   TransitOps Global Styles - Airbnb-inspired Theme
+   ========================================================================= */
+
+:root {
+  /* Light Mode Palette */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f7f7;
+  --text-primary: #222222;
+  --text-secondary: #717171;
+  --border-color: #ebebeb;
+
+  /* Brand */
+  --brand-color: #ff385c;
+  --brand-hover: #e31c5f;
+  
+  /* Status */
+  --color-available: #00a699;
+  --color-on-trip: #ff385c;
+  --color-in-shop: #ffb400;
+  --color-retired: #717171;
+}
+
+.dark {
+  /* Dark Mode Palette */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+
+  /* Brand */
+  --brand-color: #ff385c;
+  --brand-hover: #e31c5f;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center bg-[var(--brand-color)] text-white font-semibold rounded-[var(--radius)] px-4 py-2 border border-[#e31c5f] shadow-sm hover:shadow-md hover:bg-[var(--brand-hover)] transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand-color)] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -53,15 +70,16 @@
   }
 
   body {
-    background-color: #0f172a;
-    color: #f1f5f9;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     min-height: 100vh;
     margin: 0;
     padding: 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-brand-500);
+    outline: 2px solid var(--brand-color);
     outline-offset: 2px;
   }
 }

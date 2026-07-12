@@ -10,7 +10,7 @@ interface CompleteTripDialogProps {
 }
 
 const inputClass =
-  "w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "w-full rounded-[var(--radius)] bg-[var(--bg-primary)] border border-[var(--border-color)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 // Process Flow §4.2: completion requires finalOdometer + fuelConsumed.
 export default function CompleteTripDialog({
@@ -36,15 +36,15 @@ export default function CompleteTripDialog({
           reset();
         })}
         noValidate
-        className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4"
+        className="w-full max-w-sm bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-[var(--radius)] p-6 space-y-4"
       >
-        <h2 className="text-lg font-semibold text-slate-100">Complete this trip?</h2>
-        <p className="text-sm text-slate-400">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)]">Complete this trip?</h2>
+        <p className="text-sm text-[var(--text-secondary)]">
           Current vehicle odometer: {currentOdometer.toLocaleString()} km
         </p>
 
         <div className="space-y-1.5">
-          <label className="text-sm text-slate-300">Final Odometer (km)</label>
+          <label className="text-sm text-[var(--text-secondary)]">Final Odometer (km)</label>
           <input type="number" step="any" {...register("finalOdometer")} className={inputClass} />
           {errors.finalOdometer && (
             <p className="text-xs text-red-400">{errors.finalOdometer.message}</p>
@@ -52,7 +52,7 @@ export default function CompleteTripDialog({
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm text-slate-300">Fuel Consumed (liters)</label>
+          <label className="text-sm text-[var(--text-secondary)]">Fuel Consumed (liters)</label>
           <input type="number" step="any" {...register("fuelConsumed")} className={inputClass} />
           {errors.fuelConsumed && (
             <p className="text-xs text-red-400">{errors.fuelConsumed.message}</p>
@@ -66,13 +66,13 @@ export default function CompleteTripDialog({
               reset();
               onCancel();
             }}
-            className="px-4 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-800 transition-colors"
+            className="px-4 py-2 rounded-[var(--radius)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-medium transition-colors"
+            className="px-4 py-2 rounded-[var(--radius)] bg-green-600 hover:bg-green-500 text-white text-sm font-medium transition-colors"
           >
             Complete
           </button>

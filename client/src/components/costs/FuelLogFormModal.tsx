@@ -11,12 +11,12 @@ interface FuelLogFormModalProps {
 }
 
 const inputClass =
-  "w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "w-full rounded-[var(--radius)] bg-[var(--bg-primary)] border border-[var(--border-color)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm text-slate-300">{label}</label>
+      <label className="text-sm text-[var(--text-secondary)]">{label}</label>
       {children}
       {error && <p className="text-xs text-red-400">{error}</p>}
     </div>
@@ -53,12 +53,12 @@ export default function FuelLogFormModal({ onClose }: FuelLogFormModalProps) {
       <form
         onSubmit={handleSubmit((data) => mutation.mutate(data))}
         noValidate
-        className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4"
+        className="w-full max-w-md bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-[var(--radius)] p-6 space-y-4"
       >
-        <h2 className="text-lg font-semibold text-slate-100">Log Fuel</h2>
+        <h2 className="text-lg font-semibold text-[var(--text-primary)]">Log Fuel</h2>
 
         {mutation.isError && (
-          <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+          <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-[var(--radius)] px-3 py-2">
             Something went wrong. Please try again.
           </div>
         )}
@@ -91,14 +91,14 @@ export default function FuelLogFormModal({ onClose }: FuelLogFormModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-800 transition-colors"
+            className="px-4 py-2 rounded-[var(--radius)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting || mutation.isPending}
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white text-sm font-medium transition-colors"
+            className="px-4 py-2 rounded-[var(--radius)] bg-[var(--brand-color)] hover:bg-[var(--brand-hover)] disabled:opacity-60 text-white text-sm font-medium transition-colors"
           >
             Save
           </button>

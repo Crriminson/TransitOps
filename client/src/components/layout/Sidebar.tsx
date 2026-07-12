@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 /**
  * Sidebar — nav items are added as feature branches land.
@@ -33,17 +33,20 @@ const NAV_SECTIONS = [
     label: "Analytics",
     items: [
       { icon: "📈", label: "Reports", href: "/reports", step: 8, implemented: true },
+      { icon: "⚙️", label: "Settings", href: "/settings", step: 10, implemented: true },
     ],
   },
 ] as const;
 
 export default function Sidebar() {
+  const location = useLocation();
+
   return (
-    <aside className="w-64 flex-shrink-0 bg-slate-900 border-r border-slate-800/60 flex flex-col">
+    <aside className="w-64 flex-shrink-0 bg-[var(--bg-primary)] border-r border-[var(--border-color)] flex flex-col">
       {/* Brand header */}
-      <div className="px-5 py-5 border-b border-slate-800/60">
+      <div className="px-5 py-5 border-b border-[var(--border-color)]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-[var(--radius)] bg-gradient-to-br from-[var(--brand-color)] to-[var(--brand-hover)] flex items-center justify-center flex-shrink-0 shadow-sm">
             <svg
               className="w-4 h-4 text-white"
               fill="none"
@@ -60,8 +63,8 @@ export default function Sidebar() {
             </svg>
           </div>
           <div>
-            <div className="text-sm font-bold text-slate-100 leading-none">TransitOps</div>
-            <div className="text-xs text-slate-500 mt-0.5">Transport Platform</div>
+            <div className="text-sm font-extrabold text-[var(--text-primary)] leading-none tracking-tight">TransitOps</div>
+            <div className="text-xs text-[var(--text-secondary)] mt-0.5">Transport Platform</div>
           </div>
         </div>
       </div>
@@ -70,46 +73,45 @@ export default function Sidebar() {
       <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-5">
         {NAV_SECTIONS.map((section) => (
           <div key={section.label}>
-            <div className="px-2 mb-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <div className="px-2 mb-1.5 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
               {section.label}
             </div>
             <ul className="space-y-0.5">
-              {section.items.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    to={item.implemented ? item.href : "#"}
-                    id={`nav-${item.href.replace("/", "").replace("-", "_")}`}
-                    onClick={(e) => {
-                      if (!item.implemented) e.preventDefault();
-                    }}
-                    aria-disabled={!item.implemented}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 group ${
-                      item.implemented
-                        ? "text-slate-400 hover:text-slate-100 hover:bg-slate-800/70"
-                        : "text-slate-600 cursor-default"
-                    }`}
-                    title={item.implemented ? item.label : `Step ${item.step} — coming soon`}
-                  >
-                    <span className="text-base leading-none">{item.icon}</span>
-                    <span className="flex-1">{item.label}</span>
-                    <span className="text-[10px] text-slate-600 group-hover:text-slate-500 font-mono">
-                      §{item.step}
-                    </span>
-                  </Link>
-                </li>
-              ))}
+              {section.items.map((item) => {
+                const isActive = location.pathname.startsWith(item.href) || (location.pathname === "/" && item.href === "/dashboard");
+                
+                return (
+                  <li key={item.href}>
+                    <Link
+                      to={item.implemented ? item.href : "#"}
+                      id={`nav-${item.href.replace("/", "").replace("-", "_")}`}
+                      onClick={(e) => {
+                        if (!item.implemented) e.preventDefault();
+                      }}
+                      aria-disabled={!item.implemented}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-[var(--radius)] text-sm font-medium transition-all duration-150 group ${
+                        !item.implemented
+                          ? "text-[var(--border-color)] cursor-default"
+                          : isActive
+                          ? "bg-[var(--brand-color)]/10 text-[var(--brand-color)] font-bold shadow-sm"
+                          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]"
+                      }`}
+                      title={item.implemented ? item.label : `Step ${item.step} — coming soon`}
+                    >
+                      <span className="text-lg leading-none">{item.icon}</span>
+                      <span className="flex-1">{item.label}</span>
+                      <span className={`text-[10px] font-mono transition-colors ${isActive ? "text-[var(--brand-color)]" : "text-[var(--border-color)] group-hover:text-[var(--text-secondary)]"}`}>
+                        §{item.step}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}
       </nav>
 
-      {/* Phase badge */}
-      <div className="px-4 py-3 border-t border-slate-800/60">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-          <span className="text-xs text-blue-400 font-medium">Phase 0 — Infrastructure</span>
-        </div>
-      </div>
     </aside>
   );
 }

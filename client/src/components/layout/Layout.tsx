@@ -8,7 +8,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden">
       {/* Sidebar navigation */}
       <Sidebar />
 
@@ -16,7 +16,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopBar />
 
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 bg-[var(--bg-secondary)]">
           {children ?? <PlaceholderContent />}
         </main>
       </div>
@@ -47,24 +47,24 @@ function PlaceholderContent() {
       </div>
 
       <div>
-        <h1 className="text-3xl font-bold text-slate-100 tracking-tight">
+        <h1 className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">
           TransitOps
         </h1>
-        <p className="text-slate-400 mt-2 text-lg">
+        <p className="text-[var(--text-secondary)] mt-2 text-lg">
           Smart Transport Operations Platform
         </p>
       </div>
 
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 max-w-md backdrop-blur-sm">
-        <p className="text-slate-300 text-sm leading-relaxed">
-          <span className="font-semibold text-blue-400">Phase 0</span> scaffold
+      <div className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-[var(--radius)] p-6 max-w-md backdrop-blur-sm">
+        <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
+          <span className="font-semibold text-[var(--brand-color)]">Phase 0</span> scaffold
           is running. Feature pages will appear here as each step lands:
           Auth → Vehicle Registry → Driver Management → Trip Management →
           Maintenance → Fuel & Expenses → Dashboard → Reports.
         </p>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-slate-500">
+      <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
         <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
         <span>Server connection active</span>
       </div>
