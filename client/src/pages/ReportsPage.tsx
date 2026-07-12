@@ -153,20 +153,23 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         
         {/* Left: Monthly Revenue Chart */}
-        <div>
-          <h2 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-6">Monthly Revenue</h2>
-          <div className="h-64 flex items-end gap-2 px-2 border-b-2 border-black/10 dark:border-white/10 pb-1">
+        <div className="mb-8 lg:mb-0">
+          <h2 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-8">Monthly Revenue</h2>
+          <div className="h-56 flex items-end gap-2 px-2 border-b-2 border-black/10 dark:border-white/10 pb-0">
             {monthlyRevenue.map((data, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+              <div 
+                key={i} 
+                className="flex-1 bg-[#5C88C0] rounded-t hover:brightness-110 transition-all border border-black/20 relative group"
+                style={{ height: `${data.height}%` }}
+              >
                 {/* Tooltip on hover */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-[var(--text-secondary)] mb-1 bg-black/5 dark:bg-white/5 px-2 py-1 rounded whitespace-nowrap">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-bold text-[var(--text-primary)] mb-1 bg-black/10 dark:bg-white/10 px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none">
                   ${data.rev.toLocaleString()}
                 </div>
-                <div 
-                  className="w-full bg-[#5C88C0] rounded-t hover:brightness-110 transition-all border border-black/20"
-                  style={{ height: `${data.height}%` }}
-                />
-                <div className="text-[10px] font-bold text-[var(--text-secondary)] mt-2 uppercase">{data.month}</div>
+                {/* Month label below the axis */}
+                <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-[10px] font-bold text-[var(--text-secondary)] uppercase">
+                  {data.month}
+                </div>
               </div>
             ))}
           </div>
