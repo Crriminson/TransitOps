@@ -4,3 +4,4 @@
 export * from "./enums";
 export * from "./auth";
 export * from "./vehicle";
+export * from "./driver";

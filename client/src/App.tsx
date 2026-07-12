@@ -5,6 +5,7 @@ import { useSocketSync } from "./hooks/useSocketSync";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import VehiclesPage from "./pages/VehiclesPage";
+import DriversPage from "./pages/DriversPage";
 
 function App() {
   // Initialises the Socket.io connection to /ops namespace once a token is
@@ -30,6 +31,14 @@ function App() {
             element={
               <Layout>
                 <VehiclesPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/drivers"
+            element={
+              <Layout>
+                <DriversPage />
               </Layout>
             }
           />

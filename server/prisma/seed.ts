@@ -173,10 +173,89 @@ async function main(): Promise<void> {
 
   // -------------------------------------------------------------------------
   // Driver  (Step 3 — Driver Management)
-  // Seed drivers across statuses and regions; include at least one with a
-  // license expiring within 30 days for the email-reminder demo (Step 12).
+  // Every Region represented at least once. Only AVAILABLE/OFF_DUTY/
+  // SUSPENDED seeded here — ON_TRIP only makes sense once Trip (Step 4)
+  // exists to put a driver on one. Expiry dates computed relative to seed
+  // run time (not hardcoded) so "expiring soon" stays meaningful whenever
+  // this script is re-run.
   // -------------------------------------------------------------------------
-  // TODO (Step 3): seed demo drivers
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const daysFromNow = (days: number) => new Date(Date.now() + days * DAY_MS);
+
+  const demoDrivers = [
+    {
+      name: "Vikram Singh",
+      licenseNumber: "DL-0420110012345",
+      licenseCategory: "HMV",
+      licenseExpiryDate: daysFromNow(365 * 1.5),
+      contactNumber: "9876543210",
+      safetyScore: 92,
+      status: "AVAILABLE" as const,
+      region: "NORTH" as const,
+    },
+    {
+      name: "Anjali Nair",
+      licenseNumber: "KA-0320150067890",
+      licenseCategory: "LMV",
+      licenseExpiryDate: daysFromNow(20), // expiring soon — email-reminder demo (Step 12)
+      contactNumber: "9123456780",
+      safetyScore: 88,
+      status: "AVAILABLE" as const,
+      region: "SOUTH" as const,
+    },
+    {
+      name: "Ramesh Kumar",
+      licenseNumber: "TN-0720180023456",
+      licenseCategory: "HMV",
+      licenseExpiryDate: daysFromNow(-60), // already expired — compliance case
+      contactNumber: "9988776655",
+      safetyScore: 65,
+      status: "SUSPENDED" as const,
+      region: "WEST" as const,
+    },
+    {
+      name: "Fatima Sheikh",
+      licenseNumber: "MH-1420190098765",
+      licenseCategory: "LMV",
+      licenseExpiryDate: daysFromNow(365 * 2),
+      contactNumber: "9871234560",
+      safetyScore: 95,
+      status: "AVAILABLE" as const,
+      region: "CENTRAL" as const,
+    },
+    {
+      name: "Suresh Yadav",
+      licenseNumber: "UP-3220170034567",
+      licenseCategory: "MCWG",
+      licenseExpiryDate: daysFromNow(365),
+      contactNumber: "9012345678",
+      safetyScore: 78,
+      status: "OFF_DUTY" as const,
+      region: "EAST" as const,
+    },
+    {
+      name: "Deepak Joshi",
+      licenseNumber: "RJ-1420160056789",
+      licenseCategory: "HMV",
+      licenseExpiryDate: daysFromNow(365 * 1.8),
+      contactNumber: "9765432109",
+      safetyScore: 100,
+      status: "AVAILABLE" as const,
+      region: "NORTH" as const,
+    },
+  ];
+
+  for (const driver of demoDrivers) {
+    await prisma.driver.upsert({
+      where: { licenseNumber: driver.licenseNumber },
+      update: {},
+      create: driver,
+    });
+  }
+
+  console.log(
+    `   Seeded ${demoDrivers.length} demo drivers (all regions, one license expiring soon)`
+  );
 
   // -------------------------------------------------------------------------
   // Route  (Step 15 — Named Routes)
@@ -217,7 +296,7 @@ async function main(): Promise<void> {
   // TODO (Step 6): seed expenses
 
   console.log(
-    "✅ TransitOps seed — demo users + vehicles seeded (Steps 1-2).\n" +
+    "✅ TransitOps seed — demo users, vehicles, drivers seeded (Steps 1-3).\n" +
       "   Remaining sections above will be filled in as their feature branch lands."
   );
 }

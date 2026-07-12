@@ -27,6 +27,7 @@ import { Server as SocketIOServer } from "socket.io";
 import type { UserRole } from "@transitops/shared";
 import authRouter from "./routes/auth";
 import vehiclesRouter from "./routes/vehicles";
+import driversRouter from "./routes/drivers";
 import { errorHandler } from "./middleware/errorHandler";
 import { verifyAuthToken } from "./lib/jwt";
 
@@ -77,6 +78,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/vehicles", vehiclesRouter);
+app.use("/api/drivers", driversRouter);
 
 // Centralized error middleware — must be registered last, after every route.
 app.use(errorHandler);

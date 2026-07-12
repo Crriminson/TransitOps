@@ -18,7 +18,7 @@ const NAV_SECTIONS = [
     label: "Fleet",
     items: [
       { icon: "🚌", label: "Vehicles", href: "/vehicles", step: 2, implemented: true },
-      { icon: "👤", label: "Drivers", href: "/drivers", step: 3, implemented: false },
+      { icon: "👤", label: "Drivers", href: "/drivers", step: 3, implemented: true },
       { icon: "📍", label: "Routes", href: "/routes", step: 15, implemented: false },
     ],
   },
