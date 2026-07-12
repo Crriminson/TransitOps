@@ -24,16 +24,10 @@ import helmet from "helmet";
 import cors from "cors";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
-
-// ---------------------------------------------------------------------------
-// Phase 0 verification import — proves @transitops/shared resolves correctly
-// from /server. Remove the console.log after Phase 0 sign-off (check #10).
-// ---------------------------------------------------------------------------
-import { HealthResponseSchema } from "@transitops/shared";
-console.log(
-  "[Phase 0] @transitops/shared resolves from /server ✓ — HealthResponseSchema keys:",
-  Object.keys(HealthResponseSchema.shape)
-);
+import type { UserRole } from "@transitops/shared";
+import authRouter from "./routes/auth";
+import { errorHandler } from "./middleware/errorHandler";
+import { verifyAuthToken } from "./lib/jwt";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -80,6 +74,11 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/api/auth", authRouter);
+
+// Centralized error middleware — must be registered last, after every route.
+app.use(errorHandler);
+
 // ---------------------------------------------------------------------------
 // HTTP server
 // ---------------------------------------------------------------------------
@@ -89,11 +88,20 @@ const httpServer = createServer(app);
 // Socket.io — namespace /ops
 // Per Technical Requirements §3.10 and Process Flow §5.
 //
-// JWT verification is NOT implemented here yet — that lands in Step 1.
-// The middleware stub checks only that a token string is present in the
-// handshake auth payload, so Phase 0 dev tooling can connect.
+// Handshake middleware verifies the JWT passed in the connection's auth
+// payload (same access token as REST calls) and attaches the decoded user
+// to the socket. Missing/invalid tokens reject the connection.
 // ---------------------------------------------------------------------------
-const io = new SocketIOServer(httpServer, {
+interface OpsSocketData {
+  user: { id: string; role: UserRole };
+}
+
+const io = new SocketIOServer<
+  Record<string, never>,
+  Record<string, never>,
+  Record<string, never>,
+  OpsSocketData
+>(httpServer, {
   cors: {
     origin: ALLOWED_ORIGINS,
     credentials: true,
@@ -102,7 +110,6 @@ const io = new SocketIOServer(httpServer, {
 
 const opsNs = io.of("/ops");
 
-// Handshake middleware stub
 opsNs.use((socket, next) => {
   const token: unknown = socket.handshake.auth?.token;
 
@@ -110,14 +117,19 @@ opsNs.use((socket, next) => {
     return next(new Error("Authentication error: token missing"));
   }
 
-  // TODO: verify JWT, see Step 1
-  // Step 1 (Auth + RBAC) will replace this stub with real JWT verification
-  // using the JWT_SECRET from process.env and attach req.user to the socket.
-  next();
+  try {
+    const payload = verifyAuthToken(token);
+    socket.data.user = { id: payload.userId, role: payload.role };
+    next();
+  } catch {
+    next(new Error("Authentication error: invalid or expired token"));
+  }
 });
 
 opsNs.on("connection", (socket) => {
-  console.log(`[Socket.io /ops] client connected  : ${socket.id}`);
+  console.log(
+    `[Socket.io /ops] client connected  : ${socket.id} (user ${socket.data.user.id}, role ${socket.data.user.role})`
+  );
 
   socket.on("disconnect", (reason) => {
     console.log(`[Socket.io /ops] client disconnected: ${socket.id} — ${reason}`);

@@ -21,8 +21,16 @@
  */
 
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
+
+const BCRYPT_COST_FACTOR = 10;
+
+// Same known password across all four demo users, for demo convenience.
+// Documented in README, not hardcoded into the running app's data logic
+// (Technical Requirements §3.1).
+const DEMO_PASSWORD = "demo1234";
 
 async function main(): Promise<void> {
   console.log("🌱 TransitOps seed — starting...");
@@ -32,7 +40,40 @@ async function main(): Promise<void> {
   // Seed one demo user per role: FLEET_MANAGER, DRIVER, SAFETY_OFFICER,
   // FINANCIAL_ANALYST. Passwords hashed with bcrypt (cost 10).
   // -------------------------------------------------------------------------
-  // TODO (Step 1): seed demo users
+  const demoPasswordHash = await bcrypt.hash(DEMO_PASSWORD, BCRYPT_COST_FACTOR);
+
+  const demoUsers = [
+    {
+      name: "Priya Sharma",
+      email: "manager@transitops.local",
+      role: "FLEET_MANAGER" as const,
+    },
+    {
+      name: "Arjun Mehta",
+      email: "driver@transitops.local",
+      role: "DRIVER" as const,
+    },
+    {
+      name: "Kavita Rao",
+      email: "safety@transitops.local",
+      role: "SAFETY_OFFICER" as const,
+    },
+    {
+      name: "Rohan Desai",
+      email: "analyst@transitops.local",
+      role: "FINANCIAL_ANALYST" as const,
+    },
+  ];
+
+  for (const demoUser of demoUsers) {
+    await prisma.user.upsert({
+      where: { email: demoUser.email },
+      update: {},
+      create: { ...demoUser, passwordHash: demoPasswordHash },
+    });
+  }
+
+  console.log(`   Seeded ${demoUsers.length} demo users (one per role)`);
 
   // -------------------------------------------------------------------------
   // Vehicle  (Step 2 — Vehicle Registry)
@@ -87,8 +128,8 @@ async function main(): Promise<void> {
   // TODO (Step 6): seed expenses
 
   console.log(
-    "✅ TransitOps seed — no seed data yet (Phase 0 skeleton).\n" +
-      "   Each section above will be filled in as its feature branch lands."
+    "✅ TransitOps seed — demo users seeded (Step 1).\n" +
+      "   Remaining sections above will be filled in as their feature branch lands."
   );
 }
 

@@ -2,3 +2,4 @@
 // Add per-entity mutation schemas here as each feature branch lands.
 
 export * from "./enums";
+export * from "./auth";

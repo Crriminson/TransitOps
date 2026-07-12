@@ -74,7 +74,7 @@ See `docs/` for:
 ## Phase Progress
 
 - [x] Phase 0 — Infrastructure setup
-- [ ] Step 1 — Auth + RBAC
+- [x] Step 1 — Auth + RBAC
 - [ ] Step 2 — Vehicle Registry
 - [ ] Step 3 — Driver Management
 - [ ] Step 4 — Trip Management + lifecycle
