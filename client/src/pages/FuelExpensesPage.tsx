@@ -14,6 +14,7 @@ export default function FuelExpensesPage() {
 
   const [showFuelForm, setShowFuelForm] = useState(false);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<"FUEL" | "EXPENSE">("FUEL");
 
   const totalFuelCost = useMemo(() => {
     if (!fuelQuery.data) return 0;
@@ -31,27 +32,45 @@ export default function FuelExpensesPage() {
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
       <h1 className="text-2xl font-bold text-[var(--text-primary)]">Fuel &amp; Expense Management</h1>
 
-      {/* Fuel logs */}
-      <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest">Fuel Logs</h2>
-          {isFleetManager && (
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowFuelForm(true)}
-                className="px-5 py-2 rounded-lg bg-[var(--brand-color)] hover:bg-[var(--brand-hover)] text-white text-sm font-bold transition-all shadow-md shadow-orange-500/20"
-              >
-                + Log Fuel
-              </button>
-              <button
-                onClick={() => setShowExpenseForm(true)}
-                className="px-5 py-2 rounded-lg bg-[var(--brand-color)] hover:bg-[var(--brand-hover)] text-white text-sm font-bold transition-all shadow-md shadow-orange-500/20"
-              >
-                + Add Expense
-              </button>
-            </div>
-          )}
+      {/* Tab Navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-4 mb-6">
+        <div className="flex gap-6">
+          <button
+            onClick={() => setActiveTab("FUEL")}
+            className={`pb-2 -mb-[18px] text-sm font-bold uppercase tracking-widest border-b-2 transition-colors ${
+              activeTab === "FUEL"
+                ? "border-[var(--brand-color)] text-[var(--brand-color)]"
+                : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Fuel Logs
+          </button>
+          <button
+            onClick={() => setActiveTab("EXPENSE")}
+            className={`pb-2 -mb-[18px] text-sm font-bold uppercase tracking-widest border-b-2 transition-colors ${
+              activeTab === "EXPENSE"
+                ? "border-[var(--brand-color)] text-[var(--brand-color)]"
+                : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Other Expenses
+          </button>
         </div>
+
+        {isFleetManager && (
+          <div className="flex gap-3">
+            <button
+              onClick={() => activeTab === "FUEL" ? setShowFuelForm(true) : setShowExpenseForm(true)}
+              className="px-5 py-2 rounded-lg bg-[var(--brand-color)] hover:bg-[var(--brand-hover)] text-white text-sm font-bold transition-all shadow-md shadow-orange-500/20"
+            >
+              + {activeTab === "FUEL" ? "Log Fuel" : "Add Expense"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {activeTab === "FUEL" && (
+        <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
 
         {fuelQuery.isLoading && <p className="text-[var(--text-secondary)] text-sm">Loading…</p>}
         {fuelQuery.isError && <p className="text-red-400 text-sm">Failed to load fuel logs.</p>}
@@ -81,10 +100,10 @@ export default function FuelExpensesPage() {
           </div>
         )}
       </section>
+      )}
 
-      {/* Expenses */}
-      <section className="space-y-4 pt-4">
-        <h2 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest">Other Expenses (Toll / Misc)</h2>
+      {activeTab === "EXPENSE" && (
+      <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
 
         {expenseQuery.isLoading && <p className="text-[var(--text-secondary)] text-sm">Loading…</p>}
         {expenseQuery.isError && <p className="text-red-400 text-sm">Failed to load expenses.</p>}
@@ -121,6 +140,7 @@ export default function FuelExpensesPage() {
           </div>
         )}
       </section>
+      )}
 
       {/* Totals Footer */}
       <div className="border-t-2 border-[var(--text-primary)] pt-4 mt-8 flex justify-between items-center text-[var(--text-primary)] font-mono text-sm uppercase tracking-wider font-bold">

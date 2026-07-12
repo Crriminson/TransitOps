@@ -199,7 +199,7 @@ router.post(
           vehicleId: trip.vehicleId,
           tripId: id,
           liters: fuelConsumed,
-          cost: 0,
+          cost: fuelConsumed * 95, // Calculated using standard mock rate of $95/L
           date: new Date(),
         },
       });
