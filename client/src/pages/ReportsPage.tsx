@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchVehicleReports, fetchUtilization, downloadReportsCsv } from "../lib/reports";
+import { fetchTrips } from "../lib/trips";
 import { useAuthStore } from "../store/authStore";
 
 function fmt(n: number): string {
@@ -19,6 +20,11 @@ export default function ReportsPage() {
   const utilQuery = useQuery({
     queryKey: ["reports", "utilization"],
     queryFn: fetchUtilization,
+    enabled: canView,
+  });
+  const tripsQuery = useQuery({
+    queryKey: ["trips"],
+    queryFn: fetchTrips,
     enabled: canView,
   });
 
@@ -47,7 +53,6 @@ export default function ReportsPage() {
     return sum / vehiclesQuery.data.length;
   }, [vehiclesQuery.data]);
 
-  // Top Costliest Vehicles
   const topCostliest = useMemo(() => {
     if (!vehiclesQuery.data) return [];
     return [...vehiclesQuery.data]
@@ -56,6 +61,36 @@ export default function ReportsPage() {
   }, [vehiclesQuery.data]);
 
   const maxCost = topCostliest.length > 0 ? topCostliest[0].operationalCost : 1;
+
+  // Monthly Revenue (Last 6 Months)
+  const monthlyRevenue = useMemo(() => {
+    const revByMonth = new Map<string, number>();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      revByMonth.set(d.toLocaleString("en-US", { month: "short" }), 0);
+    }
+
+    if (tripsQuery.data) {
+      tripsQuery.data
+        .filter((t) => t.status === "COMPLETED" && t.completedAt)
+        .forEach((t) => {
+          const d = new Date(t.completedAt!);
+          const month = d.toLocaleString("en-US", { month: "short" });
+          if (revByMonth.has(month)) {
+            revByMonth.set(month, revByMonth.get(month)! + t.revenue);
+          }
+        });
+    }
+
+    const data = Array.from(revByMonth.entries()).map(([month, rev]) => ({ month, rev }));
+    const maxRev = Math.max(...data.map((d) => d.rev), 1000); // Avoid divide by 0
+    return data.map((d) => ({
+      month: d.month,
+      height: Math.max((d.rev / maxRev) * 100, 5), // Min 5% height to show the bar
+      rev: d.rev,
+    }));
+  }, [tripsQuery.data]);
 
   if (!canView) {
     return (
@@ -121,13 +156,18 @@ export default function ReportsPage() {
         <div>
           <h2 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-6">Monthly Revenue</h2>
           <div className="h-64 flex items-end gap-2 px-2 border-b-2 border-black/10 dark:border-white/10 pb-1">
-            {/* Pseudo-chart bars mirroring the wireframe shape */}
-            {[45, 55, 50, 75, 60, 90, 85].map((height, i) => (
-              <div 
-                key={i} 
-                className="flex-1 bg-[#5C88C0] rounded-t hover:brightness-110 transition-all border border-black/20"
-                style={{ height: `${height}%` }}
-              />
+            {monthlyRevenue.map((data, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                {/* Tooltip on hover */}
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-[var(--text-secondary)] mb-1 bg-black/5 dark:bg-white/5 px-2 py-1 rounded whitespace-nowrap">
+                  ${data.rev.toLocaleString()}
+                </div>
+                <div 
+                  className="w-full bg-[#5C88C0] rounded-t hover:brightness-110 transition-all border border-black/20"
+                  style={{ height: `${data.height}%` }}
+                />
+                <div className="text-[10px] font-bold text-[var(--text-secondary)] mt-2 uppercase">{data.month}</div>
+              </div>
             ))}
           </div>
         </div>

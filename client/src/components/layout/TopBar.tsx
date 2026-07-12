@@ -8,7 +8,7 @@ import { Search } from "lucide-react";
  * TopBar — shows a search placeholder, the /ops connection badge,
  * the current user's name/role, dark mode toggle, and a logout action.
  */
-export default function TopBar() {
+export default function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
 
@@ -36,7 +36,17 @@ export default function TopBar() {
     : "?";
 
   return (
-    <header className="h-14 flex-shrink-0 border-b border-[var(--border-color)] bg-[var(--bg-secondary)]/80 backdrop-blur-sm flex items-center px-6 gap-4">
+    <header className="h-14 flex-shrink-0 border-b border-[var(--border-color)] bg-[var(--bg-secondary)]/80 backdrop-blur-sm flex items-center px-4 sm:px-6 gap-4">
+      {/* Mobile Menu Toggle */}
+      <button 
+        onClick={onMenuClick}
+        className="lg:hidden p-2 -ml-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+      >
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
       <div className="flex-1 flex items-center max-w-sm relative">
         <Search className="absolute left-3 w-4 h-4 text-muted-foreground" />
         <Input 

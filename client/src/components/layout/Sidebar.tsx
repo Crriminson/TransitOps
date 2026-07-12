@@ -38,7 +38,7 @@ const NAV_SECTIONS = [
   },
 ] as const;
 
-export default function Sidebar() {
+export default function Sidebar({ onNavClick }: { onNavClick?: () => void }) {
   const location = useLocation();
 
   return (
@@ -86,7 +86,11 @@ export default function Sidebar() {
                       to={item.implemented ? item.href : "#"}
                       id={`nav-${item.href.replace("/", "").replace("-", "_")}`}
                       onClick={(e) => {
-                        if (!item.implemented) e.preventDefault();
+                        if (!item.implemented) {
+                          e.preventDefault();
+                        } else if (onNavClick) {
+                          onNavClick();
+                        }
                       }}
                       aria-disabled={!item.implemented}
                       className={`flex items-center gap-3 px-3 py-2 rounded-[var(--radius)] text-sm font-medium transition-all duration-150 group ${

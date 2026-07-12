@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { ReactNode } from "react";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
@@ -7,14 +8,26 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
     <div className="flex h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden">
+      {/* Mobile overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar navigation */}
-      <Sidebar />
+      <div className={`fixed inset-y-0 left-0 z-50 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:relative lg:translate-x-0 transition-transform duration-200 ease-in-out`}>
+        <Sidebar onNavClick={() => setIsSidebarOpen(false)} />
+      </div>
 
       {/* Main content area */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <TopBar />
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <TopBar onMenuClick={() => setIsSidebarOpen(true)} />
 
         <main className="flex-1 overflow-y-auto p-6 bg-[var(--bg-secondary)]">
           {children ?? <PlaceholderContent />}
