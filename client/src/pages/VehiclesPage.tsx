@@ -25,6 +25,17 @@ import { Search, MapPin, Truck, Settings } from "lucide-react";
 type FormState = { mode: "create" } | { mode: "edit"; vehicle: Vehicle } | null;
 const PAGE_SIZE = 10;
 
+function getVehicleImage(type: string) {
+  const images: Record<string, string> = {
+    TRUCK: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=600&q=80",
+    VAN: "https://images.unsplash.com/photo-1512351735230-a07ebdacae50?auto=format&fit=crop&w=600&q=80",
+    MINI_TRUCK: "https://images.unsplash.com/photo-1583426573939-97d09322edd7?auto=format&fit=crop&w=600&q=80",
+    TRAILER: "https://images.unsplash.com/photo-1586191582026-64c010c2fc08?auto=format&fit=crop&w=600&q=80",
+    BIKE: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=600&q=80",
+  };
+  return images[type] || "https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=600&q=80";
+}
+
 export default function VehiclesPage() {
   const role = useAuthStore((state) => state.user?.role);
   const isFleetManager = role === "FLEET_MANAGER";
@@ -138,17 +149,21 @@ export default function VehiclesPage() {
                 key={vehicle.id} 
                 className="overflow-hidden bg-white dark:bg-[#1a1a1a] rounded-2xl border-transparent shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.4)] hover:shadow-lg transition-all duration-300 group flex flex-col"
               >
-                {/* Image / Header Placeholder Area */}
-                <div className="h-32 bg-slate-100 dark:bg-slate-800 relative flex items-center justify-center p-6">
-                  {/* Pseudo-vehicle image/icon */}
-                  <Truck className="w-16 h-16 text-slate-300 dark:text-slate-600 transition-transform duration-300 group-hover:scale-110" />
+                {/* Image / Header Area */}
+                <div className="h-40 relative flex items-center justify-center bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <img 
+                    src={getVehicleImage(vehicle.type)} 
+                    alt={vehicle.name} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                   
                   <div className="absolute top-4 right-4">
                     <StatusBadge status={vehicle.status} className={`${VEHICLE_STATUS_STYLES[vehicle.status]} shadow-sm backdrop-blur-md`} />
                   </div>
                   
                   {/* Quick stats pill overlay */}
-                  <div className="absolute bottom-3 left-4 bg-white/90 dark:bg-black/80 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider text-[var(--text-primary)] shadow-sm flex items-center gap-1.5">
+                  <div className="absolute bottom-3 left-4 bg-white/95 dark:bg-black/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider text-[var(--text-primary)] shadow-sm flex items-center gap-1.5">
                     <Settings className="w-3 h-3 text-[var(--brand-color)]" />
                     {vehicle.odometer.toLocaleString()} KM
                   </div>
@@ -167,21 +182,21 @@ export default function VehiclesPage() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-y-4 gap-x-2 mt-auto text-sm">
+                  <div className="grid grid-cols-2 gap-y-4 gap-x-2 mt-auto text-sm bg-[var(--bg-secondary)]/50 p-3 rounded-[var(--radius)]">
                     <div>
-                      <div className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold mb-0.5">Region</div>
-                      <div className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
-                        <MapPin className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                      <div className="text-[10px] text-[var(--text-secondary)] uppercase font-bold mb-0.5 tracking-wider">Region</div>
+                      <div className="flex items-center gap-1.5 font-bold text-[var(--text-primary)] text-xs">
+                        <MapPin className="w-3.5 h-3.5 text-[var(--brand-color)]" />
                         {vehicle.region}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold mb-0.5">Capacity</div>
-                      <div className="font-medium text-[var(--text-primary)]">{vehicle.maxLoadCapacity.toLocaleString()} kg</div>
+                      <div className="text-[10px] text-[var(--text-secondary)] uppercase font-bold mb-0.5 tracking-wider">Capacity</div>
+                      <div className="font-bold text-[var(--text-primary)] text-xs">{vehicle.maxLoadCapacity.toLocaleString()} kg</div>
                     </div>
-                    <div>
-                      <div className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold mb-0.5">Last Service</div>
-                      <div className="font-medium text-[var(--text-primary)]">{vehicle.lastServiceOdometer.toLocaleString()} km</div>
+                    <div className="col-span-2 pt-2 border-t border-[var(--border-color)]">
+                      <div className="text-[10px] text-[var(--text-secondary)] uppercase font-bold mb-0.5 tracking-wider">Last Service Odometer</div>
+                      <div className="font-bold text-[var(--text-primary)] text-xs">{vehicle.lastServiceOdometer.toLocaleString()} km</div>
                     </div>
                   </div>
 
