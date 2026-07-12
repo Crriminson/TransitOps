@@ -419,11 +419,53 @@ async function main(): Promise<void> {
 
   // -------------------------------------------------------------------------
   // MaintenanceLog  (Step 5 — Maintenance Workflow)
-  // Seed at least one OPEN and one CLOSED record so the dashboard's
-  // "Vehicles in Maintenance" card is non-zero and the predictive
-  // maintenance nudge (Step 11) has lastServiceOdometer data.
+  // One OPEN record (its vehicle flipped to IN_SHOP, so the "Vehicles in
+  // Maintenance" KPI is non-zero) and one CLOSED record for history.
+  // MaintenanceLog has no natural unique key, so we key idempotency off a
+  // distinctive description via findFirst, and apply the IN_SHOP side
+  // effect by hand — the seed bypasses the API transaction that would
+  // normally produce it.
   // -------------------------------------------------------------------------
-  // TODO (Step 5): seed maintenance logs
+  const openMaintVehicle = vehiclesByReg["KA05MN9012"]!; // Tata Ace Gold
+  const closedMaintVehicle = vehiclesByReg["DL8CAF5678"]!; // Mahindra Bolero
+
+  const OPEN_MAINT_DESC = "Brake pad replacement and full inspection";
+  const CLOSED_MAINT_DESC = "Scheduled 20,000 km service";
+
+  const existingOpenMaint = await prisma.maintenanceLog.findFirst({
+    where: { description: OPEN_MAINT_DESC },
+  });
+  if (!existingOpenMaint) {
+    await prisma.maintenanceLog.create({
+      data: {
+        vehicleId: openMaintVehicle.id,
+        description: OPEN_MAINT_DESC,
+        cost: 8500,
+        status: "OPEN",
+      },
+    });
+  }
+  await prisma.vehicle.update({
+    where: { id: openMaintVehicle.id },
+    data: { status: "IN_SHOP" },
+  });
+
+  const existingClosedMaint = await prisma.maintenanceLog.findFirst({
+    where: { description: CLOSED_MAINT_DESC },
+  });
+  if (!existingClosedMaint) {
+    await prisma.maintenanceLog.create({
+      data: {
+        vehicleId: closedMaintVehicle.id,
+        description: CLOSED_MAINT_DESC,
+        cost: 12000,
+        status: "CLOSED",
+        closedAt: twoDaysAgo,
+      },
+    });
+  }
+
+  console.log("   Seeded 2 maintenance logs (1 OPEN → vehicle IN_SHOP, 1 CLOSED)");
 
   // -------------------------------------------------------------------------
   // FuelLog  (Step 6 — Fuel & Expense Logging)
@@ -440,7 +482,7 @@ async function main(): Promise<void> {
   // TODO (Step 6): seed expenses
 
   console.log(
-    "✅ TransitOps seed — demo users, vehicles, drivers, trips seeded (Steps 1-4).\n" +
+    "✅ TransitOps seed — users, vehicles, drivers, trips, maintenance seeded (Steps 1-5).\n" +
       "   Remaining sections above will be filled in as their feature branch lands."
   );
 }

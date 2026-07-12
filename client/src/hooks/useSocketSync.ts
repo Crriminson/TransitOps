@@ -90,8 +90,20 @@ export function useSocketSync(): void {
       queryClient.invalidateQueries({ queryKey: ["trips"] });
     });
 
-    // TODO (Step 5): socket.on("maintenance:opened", (payload) => { ... })
-    // TODO (Step 5): socket.on("maintenance:closed", (payload) => { ... })
+    // Opening/closing a record flips the vehicle's status (AVAILABLE ⇄
+    // IN_SHOP), so both the maintenance list and any vehicle query need to
+    // re-derive. Payload carries only ids, not the new odometer/status, so
+    // invalidate rather than patch.
+    socket.on("maintenance:opened", () => {
+      queryClient.invalidateQueries({ queryKey: ["maintenance"] });
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+    });
+
+    socket.on("maintenance:closed", () => {
+      queryClient.invalidateQueries({ queryKey: ["maintenance"] });
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+    });
+
     // TODO (Step 6): socket.on("cost:logged",        (payload) => { ... })
 
     socketRef.current = socket;

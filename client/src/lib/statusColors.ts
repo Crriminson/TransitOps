@@ -1,4 +1,9 @@
-import type { VehicleStatus, DriverStatus, TripStatus } from "@transitops/shared";
+import type {
+  VehicleStatus,
+  DriverStatus,
+  TripStatus,
+  MaintenanceLogStatus,
+} from "@transitops/shared";
 
 // Vehicle status → badge color scheme (Technical Requirements §3.9).
 // Reused as-is by the Map view (Step 9) for marker colors, so keep this the
@@ -28,4 +33,11 @@ export const TRIP_STATUS_STYLES: Record<TripStatus, string> = {
   HALTED: "bg-amber-500/10 text-amber-400 border-amber-500/20",
   COMPLETED: "bg-green-500/10 text-green-400 border-green-500/20",
   CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
+};
+
+// Maintenance status → badge color scheme. OPEN = amber (matches the
+// vehicle's IN_SHOP color), CLOSED = green (resolved).
+export const MAINTENANCE_STATUS_STYLES: Record<MaintenanceLogStatus, string> = {
+  OPEN: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  CLOSED: "bg-green-500/10 text-green-400 border-green-500/20",
 };

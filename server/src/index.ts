@@ -27,6 +27,7 @@ import authRouter from "./routes/auth";
 import vehiclesRouter from "./routes/vehicles";
 import driversRouter from "./routes/drivers";
 import tripsRouter from "./routes/trips";
+import maintenanceRouter from "./routes/maintenance";
 import { errorHandler } from "./middleware/errorHandler";
 import { createSocketServer } from "./lib/socket";
 
@@ -79,6 +80,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/vehicles", vehiclesRouter);
 app.use("/api/drivers", driversRouter);
 app.use("/api/trips", tripsRouter);
+app.use("/api/maintenance", maintenanceRouter);
 
 // Centralized error middleware — must be registered last, after every route.
 app.use(errorHandler);
