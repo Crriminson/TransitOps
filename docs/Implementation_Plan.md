@@ -14,10 +14,10 @@ This plan is organized by dependency order, not a clock — build each step only
 
 ## 2. Phase 0 — Setup
 
-- Repo scaffold: npm workspaces (`/client`, `/server`, `/prisma`), shared `tsconfig.json` base.
+- Repo scaffold: npm workspaces (`/client`, `/server`), shared `tsconfig.json` base. Prisma lives inside `server/prisma` (not its own workspace) — `server` is its only consumer, so a separate package buys nothing here.
 - Prisma schema: all 8 entities from Technical Requirements §4 (including Route), `prisma migrate dev` against local Postgres.
 - Shared Zod schema package (`/shared`) importable by both client and server — write it once here so every feature branch after this reuses it instead of redefining validation twice.
-- Seed script skeleton (`prisma/seed.ts`) — filled in incrementally as each feature lands its entity.
+- Seed script skeleton (`server/prisma/seed.ts`) — filled in incrementally as each feature lands its entity.
 - `.env.example` committed (DB URL, JWT secret, Ethereal creds placeholder) — never commit real secrets.
 - Socket.io server instance + client hook (`useSocketSync()`) scaffolded empty — every feature step after Trip Dispatch (Step 4) adds its event to this one file instead of creating parallel socket logic.
 

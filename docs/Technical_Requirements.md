@@ -250,7 +250,7 @@ Every mutation-bearing endpoint validates its request body against a shared Zod 
 | CSV export | Manual stream / `json2csv` | — |
 | PDF export | `pdfkit` | Avoids a Puppeteer/Chromium install mid-hackathon |
 | Email | Nodemailer + Ethereal test SMTP | No real account setup, gives a preview URL for the demo |
-| Repo | Monorepo (`/client`, `/server`, `/prisma`), npm workspaces | Shared TS types between client/server |
+| Repo | Monorepo (`/client`, `/server` — with Prisma nested at `server/prisma`), npm workspaces | Shared TS types between client/server; Prisma isn't a separate workspace since `server` is its only consumer |
 
 ## 8. Out of Scope / Non-Goals
 

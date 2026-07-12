@@ -1,0 +1,30 @@
+{
+  "name": "transitops",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=client\" \"npm run dev --workspace=server\"",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "migrate": "npm run migrate --workspace=server",
+    "seed": "npm run seed --workspace=server",
+    "studio": "npm run studio --workspace=server",
+    "generate": "npm run generate --workspace=server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.27.7": true,
+    "esbuild@0.28.1": true,
+    "prisma@6.19.3": true
+  }
+}

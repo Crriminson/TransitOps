@@ -1,0 +1,249 @@
+// TransitOps — Prisma Schema
+// Nested at server/prisma/schema.prisma (NOT a top-level workspace).
+// @prisma/client is installed in server's own node_modules and imported
+// via `import { PrismaClient } from '@prisma/client'` in server/src.
+//
+// DATABASE_URL is loaded from the repo-root .env file by dotenv in
+// server/src/index.ts — Prisma reads it from process.env at runtime and
+// during `prisma migrate dev` when you run that command from /server
+// (dotenv is NOT used by Prisma CLI directly; set DATABASE_URL in your
+// shell or copy .env.example to .env at the repo root before migrating).
+//
+// All 8 entities from Technical Requirements §4, exactly as specified.
+// All enums, field types, constraints, and indexes match §4 precisely.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Reads DATABASE_URL from process.env.
+  // Set it in .env at the repo root (see .env.example) and ensure it is
+  // available in your shell when running `npx prisma migrate dev`.
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  FLEET_MANAGER
+  DRIVER
+  SAFETY_OFFICER
+  FINANCIAL_ANALYST
+}
+
+enum VehicleType {
+  TRUCK
+  VAN
+  MINI_TRUCK
+  TRAILER
+  BIKE
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  ON_TRIP
+  IN_SHOP
+  RETIRED
+}
+
+enum DriverStatus {
+  AVAILABLE
+  ON_TRIP
+  OFF_DUTY
+  SUSPENDED
+}
+
+enum TripStatus {
+  DRAFT
+  DISPATCHED
+  HALTED
+  COMPLETED
+  CANCELLED
+}
+
+enum MaintenanceLogStatus {
+  OPEN
+  CLOSED
+}
+
+enum ExpenseType {
+  TOLL
+  MAINTENANCE
+  OTHER
+}
+
+// Assumption from Technical Requirements §4:
+// Dashboard filtering by "region" requires a region field on Vehicle.
+// Same enum used for Driver.region per §3.4.
+enum Region {
+  NORTH
+  SOUTH
+  EAST
+  WEST
+  CENTRAL
+}
+
+// ---------------------------------------------------------------------------
+// Entities
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Vehicle {
+  id                  String        @id @default(uuid())
+  registrationNumber  String        @unique
+  name                String
+  type                VehicleType
+  maxLoadCapacity     Decimal       // kg, > 0 (enforced at application layer)
+  odometer            Decimal       // km, >= 0
+  acquisitionCost     Decimal       // > 0 (enforced at application layer)
+  status              VehicleStatus @default(AVAILABLE)
+  region              Region
+  lastServiceOdometer Decimal       @default(0) // km; updated on maintenance close (§3.12, §4.5)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  trips           Trip[]
+  maintenanceLogs MaintenanceLog[]
+  fuelLogs        FuelLog[]
+  expenses        Expense[]
+
+  @@index([status])
+  @@index([region])
+}
+
+model Driver {
+  id                String       @id @default(uuid())
+  name              String
+  licenseNumber     String       @unique
+  licenseCategory   String
+  licenseExpiryDate DateTime
+  contactNumber     String
+  safetyScore       Int          @default(100) // 0–100
+  status            DriverStatus @default(AVAILABLE)
+  region            Region
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  // licenseExpired is NOT stored — it is computed at query time:
+  //   licenseExpiryDate < now()
+  // See Technical Requirements §3.4.
+
+  trips Trip[]
+
+  @@index([status])
+}
+
+model Route {
+  id               String   @id @default(uuid())
+  name             String
+  code             String?  @unique // optional short lane code, e.g. "MUM-PUN-01"
+  source           String
+  destination      String
+  sourceLat        Decimal? // nullable until geocoded; cached on creation (§3.15, §7.5)
+  sourceLng        Decimal?
+  destinationLat   Decimal? // nullable until geocoded; cached on creation
+  destinationLng   Decimal?
+  standardDistance Decimal  // km, > 0 (enforced at application layer)
+  standardRate     Decimal? // optional reference rate; not enforced against trip.revenue (§3.15)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  trips Trip[]
+
+  @@index([isActive])
+}
+
+model Trip {
+  id              String     @id @default(uuid())
+  source          String
+  destination     String
+  vehicleId       String
+  driverId        String
+  // routeId is nullable — set when created from a saved Route (§3.5, §4.8)
+  // Null when trip is created freehand without a Route selection.
+  routeId         String?
+  cargoWeight     Decimal    // kg, > 0; <= vehicle.maxLoadCapacity (app-level check, §4.1 step 6)
+  plannedDistance Decimal    // km, > 0
+  actualDistance  Decimal?   // set on completion (§4.2)
+  revenue         Decimal    // freight/fare charged for this trip; required at creation (§3.8 assumption)
+  trackingNumber  String     @unique // auto-generated server-side, e.g. "TO-<short-id>" (§3.5)
+  lrNumber        String?    // optional manual consignment note number (§3.5)
+  parcelCount     Int?       // optional (§3.5)
+  finalOdometer   Decimal?   // set on completion (§4.2)
+  fuelConsumed    Decimal?   // liters; set on completion; feeds FuelLog creation (§4.2)
+  status          TripStatus @default(DRAFT)
+  haltReason      String?    // required when status = HALTED; cleared on resume (§4.7)
+  dispatchedAt    DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  vehicle  Vehicle   @relation(fields: [vehicleId], references: [id])
+  driver   Driver    @relation(fields: [driverId], references: [id])
+  route    Route?    @relation(fields: [routeId], references: [id])
+  fuelLogs FuelLog[]
+
+  @@index([status])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([routeId])
+}
+
+model MaintenanceLog {
+  id          String               @id @default(uuid())
+  vehicleId   String
+  description String
+  cost        Decimal              // >= 0
+  status      MaintenanceLogStatus @default(OPEN)
+  openedAt    DateTime             @default(now())
+  closedAt    DateTime?            // nullable; set when status → CLOSED (§4.5)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+}
+
+model FuelLog {
+  id        String   @id @default(uuid())
+  vehicleId String
+  tripId    String?  // nullable; linked to trip when created on completion (§4.2)
+  liters    Decimal  // > 0
+  cost      Decimal  // >= 0
+  date      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  trip    Trip?   @relation(fields: [tripId], references: [id])
+
+  @@index([vehicleId])
+}
+
+model Expense {
+  id          String      @id @default(uuid())
+  vehicleId   String
+  type        ExpenseType
+  amount      Decimal     // >= 0
+  date        DateTime
+  description String?     // optional
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId])
+}
