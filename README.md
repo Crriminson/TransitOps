@@ -75,11 +75,11 @@ See `docs/` for:
 
 - [x] Phase 0 — Infrastructure setup
 - [x] Step 1 — Auth + RBAC
-- [ ] Step 2 — Vehicle Registry
-- [ ] Step 3 — Driver Management
-- [ ] Step 4 — Trip Management + lifecycle
-- [ ] Step 5 — Maintenance workflow
-- [ ] Step 6 — Fuel & Expense logging
+- [x] Step 2 — Vehicle Registry
+- [x] Step 3 — Driver Management
+- [x] Step 4 — Trip Management + lifecycle
+- [x] Step 5 — Maintenance workflow
+- [x] Step 6 — Fuel & Expense logging
 - [ ] Step 7 — Dashboard
 - [ ] Step 8 — Reports & Analytics
 - [ ] Step 9 — Maps (Leaflet)
