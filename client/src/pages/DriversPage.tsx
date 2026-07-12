@@ -12,7 +12,8 @@ import type { Driver } from "../types/driver";
 
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Download } from "lucide-react";
+import { exportTableToPDF } from "../lib/pdfExport";
 
 type FormState = { mode: "create" } | { mode: "edit"; driver: Driver } | null;
 const PAGE_SIZE = 10;
@@ -86,14 +87,35 @@ export default function DriversPage() {
           <h1 className="text-xl font-semibold text-[var(--text-primary)] min-w-max">Drivers & Safety Profiles</h1>
         </div>
 
-        {canWrite && (
+        <div className="flex gap-2">
           <Button
-            onClick={() => setFormState({ mode: "create" })}
-            className="bg-[#cc6600] hover:bg-[#b35900] text-white"
+            variant="outline"
+            onClick={() => {
+              const data = filteredDrivers.map(d => [
+                d.name,
+                d.licenseNumber,
+                d.licenseCategory,
+                new Date(d.licenseExpiryDate).toLocaleDateString(),
+                d.contactNumber,
+                d.status
+              ]);
+              exportTableToPDF("Drivers Directory", ["Driver", "License", "Category", "Expiry", "Contact", "Status"], data, "drivers.pdf");
+            }}
+            className="h-10 text-xs font-bold border-[var(--border-color)] bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] rounded-full"
           >
-            + Add Driver
+            <Download className="w-3.5 h-3.5 mr-1.5" />
+            Export
           </Button>
-        )}
+
+          {canWrite && (
+            <Button
+              onClick={() => setFormState({ mode: "create" })}
+              className="bg-[#cc6600] hover:bg-[#b35900] text-white rounded-full h-10 px-6"
+            >
+              + Add Driver
+            </Button>
+          )}
+        </div>
       </div>
 
       {isLoading && <p className="text-[var(--text-secondary)] text-sm">Loading drivers…</p>}

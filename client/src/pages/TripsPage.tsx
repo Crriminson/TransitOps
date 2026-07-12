@@ -22,6 +22,8 @@ import CompleteTripDialog from "../components/trips/CompleteTripDialog";
 import { TRIP_STATUS_STYLES } from "../lib/statusColors";
 import Pagination from "../components/Pagination";
 import type { Trip } from "../types/trip";
+import { exportTableToPDF } from "../lib/pdfExport";
+import { Download } from "lucide-react";
 
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -138,6 +140,24 @@ export default function TripsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-[var(--text-primary)]">Trip Dispatcher</h1>
+        <Button
+          variant="outline"
+          onClick={() => {
+            const data = filteredTrips.map(t => [
+              t.trackingNumber,
+              t.vehicle?.name || "—",
+              t.driver?.name || "—",
+              t.source,
+              t.destination,
+              t.status
+            ]);
+            exportTableToPDF("Trips Log", ["Trip ID", "Vehicle", "Driver", "Source", "Destination", "Status"], data, "trips.pdf");
+          }}
+          className="h-10 text-xs font-bold border-[var(--border-color)] bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] rounded-full"
+        >
+          <Download className="w-3.5 h-3.5 mr-1.5" />
+          Export
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

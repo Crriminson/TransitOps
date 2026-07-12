@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchVehicleReports, fetchUtilization, downloadReportsCsv } from "../lib/reports";
 import { fetchTrips } from "../lib/trips";
 import { useAuthStore } from "../store/authStore";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 function fmt(n: number): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 1 });
@@ -84,12 +85,7 @@ export default function ReportsPage() {
     }
 
     const data = Array.from(revByMonth.entries()).map(([month, rev]) => ({ month, rev }));
-    const maxRev = Math.max(...data.map((d) => d.rev), 1000); // Avoid divide by 0
-    return data.map((d) => ({
-      month: d.month,
-      height: Math.max((d.rev / maxRev) * 100, 5), // Min 5% height to show the bar
-      rev: d.rev,
-    }));
+    return data;
   }, [tripsQuery.data]);
 
   if (!canView) {
@@ -153,58 +149,34 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         
         {/* Left: Monthly Revenue Chart */}
-        <div className="mb-8 lg:mb-0">
-          <h2 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-8">Monthly Revenue</h2>
-          <div className="h-56 flex items-end gap-2 px-2 border-b-2 border-black/10 dark:border-white/10 pb-0">
-            {monthlyRevenue.map((data, i) => (
-              <div 
-                key={i} 
-                className="flex-1 bg-[#5C88C0] rounded-t hover:brightness-110 transition-all border border-black/20 relative group"
-                style={{ height: `${data.height}%` }}
-              >
-                {/* Tooltip on hover */}
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-bold text-[var(--text-primary)] mb-1 bg-black/10 dark:bg-white/10 px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none">
-                  ${data.rev.toLocaleString()}
-                </div>
-                {/* Month label below the axis */}
-                <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-[10px] font-bold text-[var(--text-secondary)] uppercase">
-                  {data.month}
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="mb-8 lg:mb-0 h-[300px]">
+          <h2 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-6">Monthly Revenue</h2>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={monthlyRevenue} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "var(--text-secondary)" }} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "var(--text-secondary)" }} tickFormatter={(value) => `$${value}`} />
+              <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ borderRadius: "8px", border: "1px solid var(--border-color)", backgroundColor: "var(--bg-primary)" }} />
+              <Bar dataKey="rev" fill="#5C88C0" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Right: Top Costliest Vehicles */}
-        <div>
+        <div className="h-[300px]">
           <h2 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-6">Top Costliest Vehicles</h2>
-          
-          <div className="space-y-6">
-            {topCostliest.map((v, i) => {
-              const colors = ["bg-[#FF8888]", "bg-[#D97706]", "bg-[#5C88C0]"];
-              const pct = maxCost > 0 ? Math.max((v.operationalCost / maxCost) * 100, 10) : 10;
-              return (
-                <div key={v.vehicleId} className="flex items-center gap-4">
-                  <div className="w-24 text-xs font-mono font-bold text-[var(--text-secondary)]">
-                    {v.registrationNumber}
-                  </div>
-                  <div className="flex-1 h-4 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full ${colors[i % colors.length]}`} 
-                      style={{ width: `${pct}%` }} 
-                    />
-                  </div>
-                  <div className="w-20 text-right text-xs font-bold text-[var(--text-primary)]">
-                    {v.operationalCost.toLocaleString()}
-                  </div>
-                </div>
-              );
-            })}
-            
-            {topCostliest.length === 0 && (
-              <p className="text-sm text-[var(--text-secondary)]">No cost data available.</p>
-            )}
-          </div>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={topCostliest} layout="vertical" margin={{ top: 20, right: 30, left: 40, bottom: 5 }}>
+              <XAxis type="number" hide />
+              <YAxis dataKey="registrationNumber" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "var(--text-secondary)", fontWeight: "bold" }} />
+              <Tooltip cursor={{ fill: "transparent" }} formatter={(value: number) => [`$${value.toLocaleString()}`, "Cost"]} contentStyle={{ borderRadius: "8px", border: "1px solid var(--border-color)", backgroundColor: "var(--bg-primary)" }} />
+              <Bar dataKey="operationalCost" radius={[0, 4, 4, 0]} barSize={24}>
+                {topCostliest.map((entry, index) => {
+                  const colors = ["#FF8888", "#D97706", "#5C88C0"];
+                  return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>

@@ -11,6 +11,8 @@ import KpiCard from "../components/dashboard/KpiCard";
 import StatusBadge from "../components/StatusBadge";
 import { TRIP_STATUS_STYLES } from "../lib/statusColors";
 import type { DashboardFilters } from "../types/dashboard";
+import { exportTableToPDF } from "../lib/pdfExport";
+import { Download } from "lucide-react";
 
 import {
   Select,
@@ -126,7 +128,27 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Trips */}
         <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)]">Recent Trips</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)]">Recent Trips</h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const data = recentTrips.map(t => [
+                  t.trackingNumber,
+                  new Date(t.createdAt).toLocaleDateString(),
+                  t.vehicle?.name || "—",
+                  t.driver?.name || "—",
+                  t.status
+                ]);
+                exportTableToPDF("Recent Trips", ["Trip ID", "Date", "Vehicle", "Driver", "Status"], data, "recent-trips.pdf");
+              }}
+              className="h-8 text-xs font-bold border-[var(--border-color)] bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)]"
+            >
+              <Download className="w-3.5 h-3.5 mr-1.5" />
+              Export PDF
+            </Button>
+          </div>
           <Card className="bg-[var(--bg-primary)] border-[var(--border-color)] overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">

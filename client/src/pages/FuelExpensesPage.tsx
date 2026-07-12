@@ -1,9 +1,12 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchFuelLogs, fetchExpenses } from "../lib/costs";
+import { exportTableToPDF } from "../lib/pdfExport";
+import { Download } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import FuelLogFormModal from "../components/costs/FuelLogFormModal";
 import ExpenseFormModal from "../components/costs/ExpenseFormModal";
+import { Button } from "../components/ui/button";
 
 export default function FuelExpensesPage() {
   const role = useAuthStore((state) => state.user?.role);
@@ -71,6 +74,26 @@ export default function FuelExpensesPage() {
 
       {activeTab === "FUEL" && (
         <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex items-center justify-between mt-8 mb-6">
+            <h2 className="text-lg font-bold text-[var(--text-primary)]">Fuel Logs</h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const data = (fuelQuery.data || []).map(log => [
+                  log.vehicle.registrationNumber,
+                  new Date(log.date).toLocaleDateString(),
+                  `${log.liters} L`,
+                  `$${log.cost}`
+                ]);
+                exportTableToPDF("Fuel Logs", ["Vehicle", "Date", "Liters", "Cost"], data, "fuel-logs.pdf");
+              }}
+              className="h-8 text-xs font-bold border-[var(--border-color)] bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)]"
+            >
+              <Download className="w-3.5 h-3.5 mr-1.5" />
+              Export PDF
+            </Button>
+          </div>
 
         {fuelQuery.isLoading && <p className="text-[var(--text-secondary)] text-sm">Loading…</p>}
         {fuelQuery.isError && <p className="text-red-400 text-sm">Failed to load fuel logs.</p>}
@@ -104,6 +127,27 @@ export default function FuelExpensesPage() {
 
       {activeTab === "EXPENSE" && (
       <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="flex items-center justify-between mt-8 mb-6">
+          <h2 className="text-lg font-bold text-[var(--text-primary)]">Other Expenses</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const data = (expenseQuery.data || []).map(exp => [
+                exp.vehicle.registrationNumber,
+                new Date(exp.date).toLocaleDateString(),
+                exp.type,
+                exp.description || "",
+                `$${exp.amount}`
+              ]);
+              exportTableToPDF("Other Expenses", ["Vehicle", "Date", "Type", "Description", "Amount"], data, "expenses.pdf");
+            }}
+            className="h-8 text-xs font-bold border-[var(--border-color)] bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)]"
+          >
+            <Download className="w-3.5 h-3.5 mr-1.5" />
+            Export PDF
+          </Button>
+        </div>
 
         {expenseQuery.isLoading && <p className="text-[var(--text-secondary)] text-sm">Loading…</p>}
         {expenseQuery.isError && <p className="text-red-400 text-sm">Failed to load expenses.</p>}

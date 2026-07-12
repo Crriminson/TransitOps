@@ -14,7 +14,8 @@ import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Download } from "lucide-react";
+import { exportTableToPDF } from "../lib/pdfExport";
 
 export default function MaintenancePage() {
   const role = useAuthStore((state) => state.user?.role);
@@ -185,7 +186,26 @@ export default function MaintenancePage() {
 
         {/* Right Pane: Service Log */}
         <div className={isFleetManager ? "lg:col-span-2 space-y-4" : "lg:col-span-3 space-y-4"}>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)]">Service Log</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)]">Service Log</h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const data = filteredLogs.map(log => [
+                  log.vehicle.registrationNumber,
+                  log.description,
+                  `$${log.cost}`,
+                  log.status
+                ]);
+                exportTableToPDF("Maintenance Log", ["Vehicle", "Service", "Cost", "Status"], data, "maintenance.pdf");
+              }}
+              className="h-8 text-xs font-bold border-[var(--border-color)] bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)]"
+            >
+              <Download className="w-3.5 h-3.5 mr-1.5" />
+              Export PDF
+            </Button>
+          </div>
 
           {isLoading && <p className="text-[var(--text-secondary)] text-sm">Loading maintenance records…</p>}
           {isError && <p className="text-red-400 text-sm">Failed to load maintenance records.</p>}
