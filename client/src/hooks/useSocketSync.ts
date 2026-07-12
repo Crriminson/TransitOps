@@ -104,7 +104,16 @@ export function useSocketSync(): void {
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
     });
 
-    // TODO (Step 6): socket.on("cost:logged",        (payload) => { ... })
+    // Fuel/expense creation doesn't change any cached status — it changes
+    // derived cost totals. The event says "re-derive" (Process Flow §4.6),
+    // so invalidate the log lists plus the report/anomaly queries that
+    // aggregate them (those land in Steps 8/10; invalidating a key with no
+    // observer yet is a harmless no-op).
+    socket.on("cost:logged", () => {
+      queryClient.invalidateQueries({ queryKey: ["fuel-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["reports"] });
+    });
 
     socketRef.current = socket;
 

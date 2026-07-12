@@ -26,7 +26,7 @@ const NAV_SECTIONS = [
     label: "Maintenance & Costs",
     items: [
       { icon: "🔧", label: "Maintenance", href: "/maintenance", step: 5, implemented: true },
-      { icon: "⛽", label: "Fuel & Expenses", href: "/fuel-expenses", step: 6, implemented: false },
+      { icon: "⛽", label: "Fuel & Expenses", href: "/fuel-expenses", step: 6, implemented: true },
     ],
   },
   {

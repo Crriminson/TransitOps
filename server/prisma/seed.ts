@@ -469,20 +469,51 @@ async function main(): Promise<void> {
 
   // -------------------------------------------------------------------------
   // FuelLog  (Step 6 — Fuel & Expense Logging)
-  // Linked to completed trips; feeds fuel-efficiency and Vehicle ROI
-  // calculations. One FuelLog per COMPLETED trip at minimum.
+  // The completed trip (TO-SEED0004) already produced one trip-linked fuel
+  // log. Here we add a handful of standalone (tripId = null) logs across
+  // vehicles so operational-cost / fuel-efficiency queries (Steps 7-8, 10)
+  // have data. No natural unique key, so gate on "no standalone logs yet."
   // -------------------------------------------------------------------------
-  // TODO (Step 6): seed fuel logs
+  const standaloneFuelCount = await prisma.fuelLog.count({ where: { tripId: null } });
+  if (standaloneFuelCount === 0) {
+    await prisma.fuelLog.createMany({
+      data: [
+        { vehicleId: vehiclesByReg["MH12AB1234"]!.id, liters: 180, cost: 18000, date: daysFromNow(-5) },
+        { vehicleId: vehiclesByReg["MH12AB1234"]!.id, liters: 165, cost: 16800, date: daysFromNow(-12) },
+        { vehicleId: vehiclesByReg["TN09XY3456"]!.id, liters: 240, cost: 24500, date: daysFromNow(-3) },
+        { vehicleId: vehiclesByReg["DL8CAF5678"]!.id, liters: 45, cost: 4600, date: daysFromNow(-8) },
+        { vehicleId: vehiclesByReg["GJ01PQ7890"]!.id, liters: 6, cost: 620, date: daysFromNow(-2) },
+      ],
+    });
+  }
+
+  const fuelCount = await prisma.fuelLog.count();
+  console.log(`   Seeded standalone fuel logs (${fuelCount} fuel logs total incl. trip-linked)`);
 
   // -------------------------------------------------------------------------
   // Expense  (Step 6 — Fuel & Expense Logging)
-  // TOLL, MAINTENANCE, and OTHER samples per vehicle so operational-cost
-  // aggregation (§3.7) and anomaly flags (§3.11) have data.
+  // TOLL, MAINTENANCE, and OTHER samples across vehicles so operational-cost
+  // aggregation (§3.7) and anomaly flags (§3.11) have data. Expenses start
+  // empty, so gate idempotency on the table being empty.
   // -------------------------------------------------------------------------
-  // TODO (Step 6): seed expenses
+  const expenseCount = await prisma.expense.count();
+  if (expenseCount === 0) {
+    await prisma.expense.createMany({
+      data: [
+        { vehicleId: vehiclesByReg["MH12AB1234"]!.id, type: "TOLL", amount: 1250, date: daysFromNow(-5), description: "NH-48 toll plazas" },
+        { vehicleId: vehiclesByReg["TN09XY3456"]!.id, type: "TOLL", amount: 2100, date: daysFromNow(-3), description: "Chennai–Bangalore corridor" },
+        { vehicleId: vehiclesByReg["DL8CAF5678"]!.id, type: "MAINTENANCE", amount: 3400, date: daysFromNow(-8), description: "Tyre rotation" },
+        { vehicleId: vehiclesByReg["MH12AB1234"]!.id, type: "OTHER", amount: 800, date: daysFromNow(-6), description: "Driver allowance" },
+        { vehicleId: vehiclesByReg["GJ01PQ7890"]!.id, type: "OTHER", amount: 300, date: daysFromNow(-2), description: "Parking" },
+      ],
+    });
+  }
+
+  const finalExpenseCount = await prisma.expense.count();
+  console.log(`   Seeded ${finalExpenseCount} expenses (TOLL, MAINTENANCE, OTHER)`);
 
   console.log(
-    "✅ TransitOps seed — users, vehicles, drivers, trips, maintenance seeded (Steps 1-5).\n" +
+    "✅ TransitOps seed — users, vehicles, drivers, trips, maintenance, fuel & expenses seeded (Steps 1-6).\n" +
       "   Remaining sections above will be filled in as their feature branch lands."
   );
 }

@@ -8,10 +8,11 @@ import VehiclesPage from "./pages/VehiclesPage";
 import DriversPage from "./pages/DriversPage";
 import TripsPage from "./pages/TripsPage";
 import MaintenancePage from "./pages/MaintenancePage";
+import FuelExpensesPage from "./pages/FuelExpensesPage";
 
 function App() {
   // Initialises the Socket.io connection to /ops namespace once a token is
-  // available. Event listeners are added in Step 6.
+  // available. All trip/maintenance/cost events are wired in useSocketSync.
   useSocketSync();
 
   return (
@@ -57,6 +58,14 @@ function App() {
             element={
               <Layout>
                 <MaintenancePage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/fuel-expenses"
+            element={
+              <Layout>
+                <FuelExpensesPage />
               </Layout>
             }
           />
