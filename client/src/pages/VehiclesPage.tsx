@@ -28,9 +28,9 @@ const PAGE_SIZE = 10;
 function getVehicleImage(type: string) {
   const images: Record<string, string> = {
     TRUCK: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=600&q=80",
-    VAN: "https://images.unsplash.com/photo-1512351735230-a07ebdacae50?auto=format&fit=crop&w=600&q=80",
-    MINI_TRUCK: "https://images.unsplash.com/photo-1583426573939-97d09322edd7?auto=format&fit=crop&w=600&q=80",
-    TRAILER: "https://images.unsplash.com/photo-1586191582026-64c010c2fc08?auto=format&fit=crop&w=600&q=80",
+    VAN: "https://images.unsplash.com/photo-1566316238612-4c2ab1cefb8b?auto=format&fit=crop&w=600&q=80",
+    MINI_TRUCK: "https://images.unsplash.com/photo-1559291001-693fb0e527d7?auto=format&fit=crop&w=600&q=80",
+    TRAILER: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=600&q=80",
     BIKE: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=600&q=80",
   };
   return images[type] || "https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=600&q=80";
@@ -147,7 +147,7 @@ export default function VehiclesPage() {
             {paginatedVehicles.map((vehicle) => (
               <Card 
                 key={vehicle.id} 
-                className="overflow-hidden bg-white dark:bg-[#1a1a1a] rounded-2xl border-transparent shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.4)] hover:shadow-lg transition-all duration-300 group flex flex-col"
+                className="overflow-hidden bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-color)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 group flex flex-col"
               >
                 {/* Image / Header Area */}
                 <div className="h-40 relative flex items-center justify-center bg-slate-100 dark:bg-slate-800 overflow-hidden">

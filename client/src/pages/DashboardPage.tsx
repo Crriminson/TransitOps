@@ -132,24 +132,24 @@ export default function DashboardPage() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-xs uppercase tracking-wider border-b border-[var(--border-color)]">
                   <tr>
-                    <th className="px-4 py-3">Trip</th>
+                    <th className="px-4 py-3">Trip ID</th>
+                    <th className="px-4 py-3">Date</th>
                     <th className="px-4 py-3">Vehicle</th>
                     <th className="px-4 py-3">Driver</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">ETA</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border-color)]">
                   {recentTrips.map((trip) => (
                     <tr key={trip.id} className="text-[var(--text-primary)]">
                       <td className="px-4 py-4 font-mono font-medium">{trip.trackingNumber}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-[var(--text-secondary)]">
+                        {new Date(trip.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </td>
                       <td className="px-4 py-4">{trip.vehicle?.name || "—"}</td>
                       <td className="px-4 py-4">{trip.driver?.name || "—"}</td>
                       <td className="px-4 py-4">
                         <StatusBadge status={trip.status} className={TRIP_STATUS_STYLES[trip.status]} />
-                      </td>
-                      <td className="px-4 py-4 text-[var(--text-secondary)]">
-                        {trip.status === "DISPATCHED" ? "45 min" : "—"}
                       </td>
                     </tr>
                   ))}
@@ -198,16 +198,6 @@ export default function DashboardPage() {
                 </div>
                 <div className="h-2 w-full bg-[var(--bg-secondary)] rounded-full overflow-hidden">
                   <div className="h-full bg-[var(--brand-color)] rounded-full" style={{ width: `${getPercent(kpis?.inMaintenance || 0)}%` }} />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[var(--text-primary)] font-medium">Retired</span>
-                  <span className="text-[var(--text-secondary)]">0</span>
-                </div>
-                <div className="h-2 w-full bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-                  <div className="h-full bg-red-400 rounded-full" style={{ width: `0%` }} />
                 </div>
               </div>
             </CardContent>
